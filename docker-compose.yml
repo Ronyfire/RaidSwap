@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: raidswap
+      POSTGRES_PASSWORD: raidswap_dev
+      POSTGRES_DB: raidswap
+    ports:
+      - "5432:5432"
+    volumes:
+      - raidswap_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raidswap -d raidswap"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  raidswap_pgdata:
