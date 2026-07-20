@@ -57,6 +57,7 @@ class Responsibility(db.Model):
     requires_prior_experience = db.Column(db.Boolean, nullable=False, default=False)
     description = db.Column(db.Text)
     confidence = db.Column(db.String(20), nullable=False, default="unconfirmed")
+    note_line = db.Column(db.String(500), nullable=True)
     last_updated = db.Column(
         db.DateTime,
         default=lambda: datetime.now(timezone.utc),
@@ -77,6 +78,7 @@ class Responsibility(db.Model):
             "requires_prior_experience": self.requires_prior_experience,
             "description": self.description,
             "confidence": self.confidence,
+            "note_line": self.note_line,
             "last_updated": self.last_updated.isoformat() if self.last_updated else None,
         }
 
