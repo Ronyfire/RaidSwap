@@ -18,10 +18,16 @@ def create_app():
     from routes.raiders import raiders_bp
     from routes.bosses import bosses_bp
     from routes.responsibilities import responsibilities_bp
+    from routes.positions import positions_bp
+    from routes.mechanic_profiles import mechanic_profiles_bp
+    from routes.assignments import assignments_bp
 
     app.register_blueprint(raiders_bp)
     app.register_blueprint(bosses_bp)
     app.register_blueprint(responsibilities_bp)
+    app.register_blueprint(positions_bp)
+    app.register_blueprint(mechanic_profiles_bp)
+    app.register_blueprint(assignments_bp)
 
     @app.get("/health")
     def health():
