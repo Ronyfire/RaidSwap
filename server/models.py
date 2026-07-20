@@ -17,6 +17,15 @@ class Raider(db.Model):
     mechanic_profiles = db.relationship("MechanicProfile", back_populates="raider")
     assignments = db.relationship("Assignment", back_populates="raider")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "wow_class": self.wow_class,
+            "spec": self.spec,
+            "role": self.role,
+        }
+
 
 class Boss(db.Model):
     __tablename__ = "bosses"
@@ -27,6 +36,14 @@ class Boss(db.Model):
     order = db.Column(db.Integer, nullable=False)
 
     positions = db.relationship("Position", back_populates="boss")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "raid": self.raid,
+            "order": self.order,
+        }
 
 
 class Responsibility(db.Model):
@@ -49,6 +66,19 @@ class Responsibility(db.Model):
     positions = db.relationship("Position", back_populates="mechanic")
     mechanic_profiles = db.relationship("MechanicProfile", back_populates="responsibility")
     assignments = db.relationship("Assignment", back_populates="responsibility")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "actor_label": self.actor_label,
+            "difficulty_variant": self.difficulty_variant,
+            "requires_role": self.requires_role,
+            "requires_prior_experience": self.requires_prior_experience,
+            "description": self.description,
+            "confidence": self.confidence,
+            "last_updated": self.last_updated.isoformat() if self.last_updated else None,
+        }
 
 
 class Position(db.Model):
