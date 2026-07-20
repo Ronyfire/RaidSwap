@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 from sqlalchemy import text
 
 from config import Config
@@ -10,8 +11,17 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
+    CORS(app)
 
     import models  # noqa: F401 — registra los modelos en el metadata de SQLAlchemy
+
+    from routes.raiders import raiders_bp
+    from routes.bosses import bosses_bp
+    from routes.responsibilities import responsibilities_bp
+
+    app.register_blueprint(raiders_bp)
+    app.register_blueprint(bosses_bp)
+    app.register_blueprint(responsibilities_bp)
 
     @app.get("/health")
     def health():
