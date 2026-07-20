@@ -64,7 +64,7 @@ class Responsibility(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    positions = db.relationship("Position", back_populates="mechanic")
+    positions = db.relationship("Position", back_populates="responsibility")
     mechanic_profiles = db.relationship("MechanicProfile", back_populates="responsibility")
     assignments = db.relationship("Assignment", back_populates="responsibility")
 
@@ -91,11 +91,21 @@ class Position(db.Model):
     y = db.Column(db.Float, nullable=False)
     boss_id = db.Column(db.Integer, db.ForeignKey("bosses.id"), nullable=False)
     requires_role = db.Column(db.String(20))
-    mechanic_id = db.Column(db.Integer, db.ForeignKey("responsibilities.id"), nullable=True)
+    responsibility_id = db.Column(db.Integer, db.ForeignKey("responsibilities.id"), nullable=True)
 
     boss = db.relationship("Boss", back_populates="positions")
-    mechanic = db.relationship("Responsibility", back_populates="positions")
+    responsibility = db.relationship("Responsibility", back_populates="positions")
     assignments = db.relationship("Assignment", back_populates="position")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "x": self.x,
+            "y": self.y,
+            "boss_id": self.boss_id,
+            "requires_role": self.requires_role,
+            "responsibility_id": self.responsibility_id,
+        }
 
 
 class MechanicProfile(db.Model):
@@ -110,6 +120,14 @@ class MechanicProfile(db.Model):
     raider = db.relationship("Raider", back_populates="mechanic_profiles")
     responsibility = db.relationship("Responsibility", back_populates="mechanic_profiles")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "raider_id": self.raider_id,
+            "responsibility_id": self.responsibility_id,
+            "proficiency_level": self.proficiency_level,
+        }
+
 
 class Assignment(db.Model):
     __tablename__ = "assignments"
@@ -123,6 +141,15 @@ class Assignment(db.Model):
     raider = db.relationship("Raider", back_populates="assignments")
     responsibility = db.relationship("Responsibility", back_populates="assignments")
     position = db.relationship("Position", back_populates="assignments")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "raider_id": self.raider_id,
+            "responsibility_id": self.responsibility_id,
+            "position_id": self.position_id,
+            "active_note_ref": self.active_note_ref,
+        }
 
 
 @event.listens_for(Assignment, "before_insert")
