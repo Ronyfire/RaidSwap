@@ -30,7 +30,9 @@ just a bootcamp demo.
   requires_role, requires_prior_experience, description (free text — this is
   where mechanic detail lives, NOT structured sub-tables), confidence
   (confirmed/untested), last_updated
-- `Position`: x, y, boss_id, requires_role, mechanic_id (optional)
+- `Position`: x, y, boss_id, requires_role, responsibility_id (nullable, FK to
+  Responsibility — renamed from the original "mechanic_id" during S1 to match
+  the rest of the schema)
 - `MechanicProfile`: raider_id, responsibility_id, proficiency_level
 - `Assignment`: raider_id, responsibility_id/position_id, active note reference
 
