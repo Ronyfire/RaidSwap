@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { RaidProvider } from "./context/RaidContext";
 import { RaidersPage } from "./pages/RaidersPage";
 import { BossesPage } from "./pages/BossesPage";
+import { BossDetailPage } from "./pages/BossDetailPage";
 import { ResponsibilitiesPage } from "./pages/ResponsibilitiesPage";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/" element={<RaidersPage />} />
           <Route path="/raiders" element={<RaidersPage />} />
           <Route path="/bosses" element={<BossesPage />} />
+          <Route path="/bosses/:id" element={<BossDetailPage />} />
           <Route path="/responsibilities" element={<ResponsibilitiesPage />} />
         </Routes>
       </BrowserRouter>

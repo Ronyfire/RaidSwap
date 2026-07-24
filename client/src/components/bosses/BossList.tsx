@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { Boss } from "../../api/bosses";
 
 interface BossListProps {
@@ -28,6 +29,7 @@ export function BossList({ bosses, onEdit, onDelete }: BossListProps) {
             <td>{boss.raid}</td>
             <td>{boss.order}</td>
             <td>
+              <Link to={`/bosses/${boss.id}`}>Ver detalle</Link>
               <button onClick={() => onEdit(boss)}>Editar</button>
               <button onClick={() => onDelete(boss.id)}>Borrar</button>
             </td>
