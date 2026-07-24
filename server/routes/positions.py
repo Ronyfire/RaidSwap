@@ -22,7 +22,11 @@ def _validate_foreign_keys(data):
 
 @positions_bp.get("")
 def list_positions():
-    return jsonify([p.to_dict() for p in Position.query.all()])
+    query = Position.query
+    boss_id = request.args.get("boss_id", type=int)
+    if boss_id is not None:
+        query = query.filter_by(boss_id=boss_id)
+    return jsonify([p.to_dict() for p in query.all()])
 
 
 @positions_bp.get("/<int:position_id>")
