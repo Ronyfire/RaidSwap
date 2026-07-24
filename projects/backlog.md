@@ -1,29 +1,26 @@
 # RaidSwap — Backlog completo (6 semanas)
 
-## Sprint 1 — Planificación y Setup ✅ (en curso)
+## Sprint 1 — Planificación y Setup ✅ (completo)
 
-**Completado:**
 - [x] Repo + estructura (client/server/projects) + README
 - [x] Frontend: Vite + React + TypeScript + Tailwind v4
 - [x] Backend: Flask + SQLAlchemy vía Pipenv
 - [x] PostgreSQL en Docker Compose
 - [x] Flujo de ramas definido (feature/* → develop → main)
-
-**En curso:**
-- [ ] Flask app factory + conexión SQLAlchemy a la DB + endpoint /health
-- [ ] Modelos: Raider, Boss, Responsibility, Position, MechanicProfile, Assignment
-- [ ] CRUD básico (backend + frontend): raiders, bosses, responsibilities
+- [x] Flask app factory + conexión SQLAlchemy a la DB + endpoint /health (#1)
+- [x] Modelos: Raider, Boss, Responsibility, Position, MechanicProfile, Assignment (#2)
+- [x] CRUD básico (backend + frontend): raiders, bosses, responsibilities (#3)
 
 ---
 
 ## Sprint 2 — Core de funcionalidades
 
-- [ ] Vistas React: dashboard de bosses, detalle de boss con sus responsibilities
-- [ ] Estado global (Context API): roster activo, sesión, boss seleccionado
-- [ ] API REST completa sobre los modelos de S1 (endpoints faltantes: Position, MechanicProfile, Assignment)
-- [ ] Vista de "nota" activa por boss (raider → responsibility), aún sin overlay visual
-- [ ] Carga manual del perfil de mecánicas por jugador (MechanicProfile)
-- [ ] Tests básicos (pytest) sobre los modelos y endpoints ya construidos
+- [x] Vistas React: dashboard de bosses, detalle de boss con sus responsibilities (#4, PR #37)
+- [ ] Estado global (Context API): roster activo, sesión, boss seleccionado (#5 — roster y boss seleccionado ya en RaidContext; "sesión" queda para S3 con JWT auth)
+- [x] API REST completa sobre los modelos de S1 (endpoints faltantes: Position, MechanicProfile, Assignment) (#6)
+- [ ] Vista de "nota" activa por boss (raider → responsibility), aún sin overlay visual (#7)
+- [ ] Carga manual del perfil de mecánicas por jugador (MechanicProfile) (#8)
+- [x] Tests básicos (pytest) sobre los modelos y endpoints ya construidos (#9)
 
 ---
 
