@@ -68,6 +68,7 @@ patch (nerfs/buffs) — the model supports updating it, not just seeding once.
 - Optional integrations (Blizzard Game Data API, WoWAudit, Warcraft Logs)
   live behind their own service adapter files — core logic never depends on
   them being available
+- Language — reply in Spanish using "tú", never "vos"/Rioplatense forms.
 
 ## Git & Testing Workflow
 
