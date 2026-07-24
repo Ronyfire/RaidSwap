@@ -40,6 +40,27 @@ def test_create_position_missing_fields(client):
     assert resp.status_code == 400
 
 
+def test_list_positions_filtered_by_boss_id(client):
+    boss_a = make_boss(client, name="Boss A")
+    boss_b = make_boss(client, name="Boss B")
+    make_position(client, boss_a)
+    make_position(client, boss_a)
+    make_position(client, boss_b)
+
+    resp = client.get(f"/api/positions?boss_id={boss_a}")
+    assert resp.status_code == 200
+    positions = resp.get_json()
+    assert len(positions) == 2
+    assert all(p["boss_id"] == boss_a for p in positions)
+
+
+def test_list_positions_boss_id_with_no_matches(client):
+    boss_id = make_boss(client)
+    resp = client.get(f"/api/positions?boss_id={boss_id}")
+    assert resp.status_code == 200
+    assert resp.get_json() == []
+
+
 def test_create_position_x_zero_is_not_missing(client):
     # x=0 es un valor valido, no deberia contar como "campo faltante"
     boss_id = make_boss(client)
