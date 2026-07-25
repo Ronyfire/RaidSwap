@@ -16,6 +16,7 @@ UPDATABLE_FIELDS = [
     "requires_prior_experience",
     "description",
     "confidence",
+    "note_line",
 ]
 
 
