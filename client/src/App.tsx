@@ -3,6 +3,7 @@ import { RaidProvider } from "./context/RaidContext";
 import { RaidersPage } from "./pages/RaidersPage";
 import { BossesPage } from "./pages/BossesPage";
 import { BossDetailPage } from "./pages/BossDetailPage";
+import { ActiveNotePage } from "./pages/ActiveNotePage";
 import { ResponsibilitiesPage } from "./pages/ResponsibilitiesPage";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/raiders" element={<RaidersPage />} />
           <Route path="/bosses" element={<BossesPage />} />
           <Route path="/bosses/:id" element={<BossDetailPage />} />
+          <Route path="/active-note/:bossId" element={<ActiveNotePage />} />
           <Route path="/responsibilities" element={<ResponsibilitiesPage />} />
         </Routes>
       </BrowserRouter>
