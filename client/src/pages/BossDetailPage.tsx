@@ -3,10 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { getBoss, type Boss } from "../api/bosses";
 import { getPositions, type Position } from "../api/positions";
 import { getResponsibilities, type Responsibility } from "../api/responsibilities";
+import { useRaidContext } from "../context/useRaidContext";
 
 export function BossDetailPage() {
   const { id } = useParams<{ id: string }>();
   const bossId = Number(id);
+  const { setSelectedBoss } = useRaidContext();
 
   const [boss, setBoss] = useState<Boss | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -22,6 +24,7 @@ export function BossDetailPage() {
           getResponsibilities(),
         ]);
         setBoss(bossData);
+        setSelectedBoss(bossData);
         setPositions(positionsData);
         setResponsibilities(responsibilitiesData);
       } catch (err) {
@@ -29,7 +32,7 @@ export function BossDetailPage() {
       }
     }
     load();
-  }, [bossId]);
+  }, [bossId, setSelectedBoss]);
 
   function responsibilityFor(position: Position): Responsibility | undefined {
     if (position.responsibility_id === null) return undefined;
@@ -47,6 +50,9 @@ export function BossDetailPage() {
       <h1>{boss.name}</h1>
       <p>
         {boss.raid} — orden {boss.order}
+      </p>
+      <p>
+        <Link to={`/active-note/${boss.id}`}>Ver nota activa</Link>
       </p>
 
       <h2>Posiciones</h2>
