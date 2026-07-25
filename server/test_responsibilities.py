@@ -43,6 +43,20 @@ def test_explicit_false_is_applied(client):
     assert resp.get_json()["requires_prior_experience"] is False
 
 
+def test_create_responsibility_with_note_line(client):
+    resp = make_responsibility(client, note_line="tag:Rob;")
+    assert resp.status_code == 201
+    assert resp.get_json()["note_line"] == "tag:Rob;"
+
+
+def test_update_note_line(client):
+    resp_id = make_responsibility(client).get_json()["id"]
+
+    resp = client.put(f"/api/responsibilities/{resp_id}", json={"note_line": "tag:Sam;"})
+    assert resp.status_code == 200
+    assert resp.get_json()["note_line"] == "tag:Sam;"
+
+
 def test_delete_responsibility(client):
     resp_id = make_responsibility(client).get_json()["id"]
 
