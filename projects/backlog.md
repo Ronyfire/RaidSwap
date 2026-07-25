@@ -18,7 +18,7 @@
 - [x] Vistas React: dashboard de bosses, detalle de boss con sus responsibilities (#4, PR #37)
 - [ ] Estado global (Context API): roster activo, sesión, boss seleccionado (#5 — roster y boss seleccionado ya en RaidContext; "sesión" queda para S3 con JWT auth)
 - [x] API REST completa sobre los modelos de S1 (endpoints faltantes: Position, MechanicProfile, Assignment) (#6)
-- [ ] Vista de "nota" activa por boss (raider → responsibility), aún sin overlay visual (#7)
+- [x] Vista de "nota" activa por boss (raider → responsibility), aún sin overlay visual (#7, PR #40)
 - [ ] Carga manual del perfil de mecánicas por jugador (MechanicProfile) (#8)
 - [x] Tests básicos (pytest) sobre los modelos y endpoints ya construidos (#9)
 
