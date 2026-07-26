@@ -31,3 +31,18 @@ Ajustes pendientes en la REPO (fase de integración de diseño):
   ruta /active-note.
 - Copy de UI en inglés (idioma base) — ya en curso.
 - Mechanic profiles: filtro de rol en el form + validación backend — trazado en #46.
+
+## Criterio de integración diseño ↔ código
+
+- Regla base: el DISEÑO define cómo se ve; el CÓDIGO define cómo funciona. Cuando
+  chocan, se resuelve por caso, no copiando el diseño a ciegas.
+- Caso 1 — el diseño se ve distinto pero el código funciona: aplicar el ASPECTO del
+  diseño (layout, colores, tipografías, estructura visual) sobre el componente que
+  ya existe, SIN tocar el wiring ni la estructura de datos. Gana el diseño en lo
+  visual; el código conserva su comportamiento.
+- Caso 2 — el diseño pide algo que el backend/alcance no soporta (progress/X-Y en
+  boss cards, login, integraciones, reasignación/chat/backup): NO copiarlo. Omitir
+  o dejar para su issue. Manda el alcance.
+- Caso 3 — el diseño está mal por dominio (p. ej. combos rol-incompatibles en
+  Mechanic profiles): gana el código/el dominio. Se corrige el diseño; el código
+  NO se dobla a un diseño equivocado.
