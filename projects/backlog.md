@@ -24,6 +24,9 @@
 
 ---
 
+Antes de arrancar Sprint 3: ver [design-reconciliation.md](./design-reconciliation.md)
+— reconciliación entre la visión completa de Claude Design y el alcance real del MVP.
+
 ## Sprint 3 — Autenticación + arranque del agente
 
 - [ ] Auth JWT (login/registro, solo para raid leader/admin)
