@@ -5,6 +5,7 @@ import { BossesPage } from "./pages/BossesPage";
 import { BossDetailPage } from "./pages/BossDetailPage";
 import { ActiveNotePage } from "./pages/ActiveNotePage";
 import { ResponsibilitiesPage } from "./pages/ResponsibilitiesPage";
+import { MechanicProfilesPage } from "./pages/MechanicProfilesPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Link to="/raiders">Raiders</Link>
           <Link to="/bosses">Bosses</Link>
           <Link to="/responsibilities">Responsibilities</Link>
+          <Link to="/mechanic-profiles">Mechanic Profiles</Link>
         </nav>
         <Routes>
           <Route path="/" element={<RaidersPage />} />
@@ -22,6 +24,7 @@ function App() {
           <Route path="/bosses/:id" element={<BossDetailPage />} />
           <Route path="/active-note/:bossId" element={<ActiveNotePage />} />
           <Route path="/responsibilities" element={<ResponsibilitiesPage />} />
+          <Route path="/mechanic-profiles" element={<MechanicProfilesPage />} />
         </Routes>
       </BrowserRouter>
     </RaidProvider>
