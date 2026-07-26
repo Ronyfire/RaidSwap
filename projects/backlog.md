@@ -13,13 +13,13 @@
 
 ---
 
-## Sprint 2 — Core de funcionalidades
+## Sprint 2 — Core de funcionalidades ✅ (completo, salvo #5 diferido a Sprint 3)
 
 - [x] Vistas React: dashboard de bosses, detalle de boss con sus responsibilities (#4, PR #37)
-- [ ] Estado global (Context API): roster activo, sesión, boss seleccionado (#5 — roster y boss seleccionado ya en RaidContext; "sesión" queda para S3 con JWT auth)
+- [ ] Estado global (Context API): roster activo, sesión, boss seleccionado (#5 — roster y boss seleccionado ya en RaidContext; "sesión" diferida a Sprint 3 con JWT auth, ver #10)
 - [x] API REST completa sobre los modelos de S1 (endpoints faltantes: Position, MechanicProfile, Assignment) (#6)
 - [x] Vista de "nota" activa por boss (raider → responsibility), aún sin overlay visual (#7, PR #40)
-- [ ] Carga manual del perfil de mecánicas por jugador (MechanicProfile) (#8)
+- [x] Carga manual del perfil de mecánicas por jugador (MechanicProfile) (#8, PR #43)
 - [x] Tests básicos (pytest) sobre los modelos y endpoints ya construidos (#9)
 
 ---
