@@ -1,17 +1,34 @@
 import { useState, type FormEvent } from "react";
 import type { Raider, RaiderInput } from "../../api/raiders";
+import { CLASS_LIST, CLASS_SPECS } from "../../lib/wowClasses";
 
 interface RaiderFormProps {
   initial?: Raider;
   onSubmit: (data: RaiderInput) => void;
-  onCancel?: () => void;
+  onCancel: () => void;
+}
+
+const labelClass = "block text-[11px] uppercase tracking-wide text-text-subtle mb-1.5";
+const inputClass =
+  "w-full px-2.5 py-2 mb-3.5 bg-background border border-border-strong rounded text-text text-[13.5px]";
+
+function initialSpec(wowClass: string, spec: string | undefined): string {
+  const specs = CLASS_SPECS[wowClass];
+  return specs.find((s) => s.spec === spec)?.spec ?? specs[0].spec;
 }
 
 export function RaiderForm({ initial, onSubmit, onCancel }: RaiderFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
-  const [wowClass, setWowClass] = useState(initial?.wow_class ?? "");
-  const [spec, setSpec] = useState(initial?.spec ?? "");
-  const [role, setRole] = useState(initial?.role ?? "");
+  const [wowClass, setWowClass] = useState(initial?.wow_class ?? CLASS_LIST[0]);
+  const [spec, setSpec] = useState(() => initialSpec(wowClass, initial?.spec));
+
+  const specs = CLASS_SPECS[wowClass];
+  const role = specs.find((s) => s.spec === spec)?.role ?? specs[0].role;
+
+  function handleClassChange(newClass: string) {
+    setWowClass(newClass);
+    setSpec(initialSpec(newClass, spec));
+  }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -20,28 +37,54 @@ export function RaiderForm({ initial, onSubmit, onCancel }: RaiderFormProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Nombre
-        <input value={name} onChange={(e) => setName(e.target.value)} required />
-      </label>
-      <label>
-        Clase
-        <input value={wowClass} onChange={(e) => setWowClass(e.target.value)} required />
-      </label>
-      <label>
-        Spec
-        <input value={spec} onChange={(e) => setSpec(e.target.value)} required />
-      </label>
-      <label>
-        Rol
-        <input value={role} onChange={(e) => setRole(e.target.value)} required />
-      </label>
-      <button type="submit">Guardar</button>
-      {onCancel && (
-        <button type="button" onClick={onCancel}>
-          Cancelar
+      <div className="font-heading font-semibold text-base mb-4">
+        {initial ? "Edit Raider" : "Add Raider"}
+      </div>
+      <label className={labelClass}>Name</label>
+      <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} required />
+
+      <label className={labelClass}>Class</label>
+      <select
+        className={inputClass}
+        value={wowClass}
+        onChange={(e) => handleClassChange(e.target.value)}
+      >
+        {CLASS_LIST.map((c) => (
+          <option key={c} value={c}>
+            {c}
+          </option>
+        ))}
+      </select>
+
+      <label className={labelClass}>Spec</label>
+      <select className={inputClass} value={spec} onChange={(e) => setSpec(e.target.value)}>
+        {specs.map((s) => (
+          <option key={s.spec} value={s.spec}>
+            {s.spec}
+          </option>
+        ))}
+      </select>
+
+      <label className={labelClass}>Role</label>
+      <div className="w-full px-2.5 py-2 mb-3.5 bg-surface border border-border rounded text-text-muted text-[13.5px]">
+        {role}
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="border border-border-strong rounded px-4 py-2 text-text-muted text-[13px]"
+        >
+          Cancel
         </button>
-      )}
+        <button
+          type="submit"
+          className="bg-accent border-none rounded px-4 py-2 text-accent-ink font-bold text-[13px]"
+        >
+          Save
+        </button>
+      </div>
     </form>
   );
 }
