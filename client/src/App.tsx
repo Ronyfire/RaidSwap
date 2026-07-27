@@ -3,22 +3,14 @@ import { RaidProvider } from "./context/RaidContext";
 import { RaidersPage } from "./pages/RaidersPage";
 import { BossesPage } from "./pages/BossesPage";
 import { BossDetailPage } from "./pages/BossDetailPage";
-import { ActiveNotePage } from "./pages/ActiveNotePage";
 import { ResponsibilitiesPage } from "./pages/ResponsibilitiesPage";
 import { MechanicProfilesPage } from "./pages/MechanicProfilesPage";
+import { SoonBadge } from "./components/SoonBadge";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `text-left px-2.5 py-2 rounded font-semibold text-[13.5px] ${
     isActive ? "bg-nav-active text-accent" : "text-text-muted hover:text-text"
   }`;
-
-function SoonBadge() {
-  return (
-    <span className="ml-1.5 align-middle text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-badge-future-bg text-badge-future-text">
-      Soon
-    </span>
-  );
-}
 
 function NavGroupLabel({ children }: { children: string }) {
   return (
@@ -85,7 +77,6 @@ function App() {
               <Route path="/raiders" element={<RaidersPage />} />
               <Route path="/bosses" element={<BossesPage />} />
               <Route path="/bosses/:id" element={<BossDetailPage />} />
-              <Route path="/active-note/:bossId" element={<ActiveNotePage />} />
               <Route path="/responsibilities" element={<ResponsibilitiesPage />} />
               <Route path="/mechanic-profiles" element={<MechanicProfilesPage />} />
             </Routes>
