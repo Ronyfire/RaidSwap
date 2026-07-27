@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+@theme {
+  --font-heading: "Chakra Petch", sans-serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-background: oklch(15% 0.012 55);
+  --color-surface: oklch(19% 0.014 55);
+  --color-surface-alt: oklch(17% 0.013 55);
+  --color-nav-active: oklch(24% 0.016 55);
+
+  --color-border: oklch(27% 0.015 55);
+  --color-border-muted: oklch(26% 0.014 55);
+  --color-border-strong: oklch(32% 0.015 55);
+
+  --color-text: oklch(92% 0.01 60);
+  --color-text-muted: oklch(60% 0.012 55);
+  --color-text-subtle: oklch(55% 0.012 55);
+  --color-text-faint: oklch(45% 0.012 55);
+
+  --color-accent: oklch(65% 0.18 25);
+  --color-accent-ink: oklch(18% 0.01 55);
+
+  --color-danger: oklch(65% 0.14 25);
+  --color-danger-strong: oklch(60% 0.18 25);
+  --color-success: oklch(75% 0.15 145);
+  --color-warning: oklch(70% 0.14 60);
+
+  --color-badge-future-bg: oklch(30% 0.05 80);
+  --color-badge-future-text: oklch(88% 0.11 80);
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
