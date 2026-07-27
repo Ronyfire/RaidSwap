@@ -37,6 +37,13 @@ def create_app():
         except Exception as e:
             return jsonify(status="error", db=str(e)), 500
 
+    @app.cli.command("seed-venomous-abyss")
+    def seed_venomous_abyss_command():
+        from seeds.venomous_abyss import seed_venomous_abyss
+
+        seed_venomous_abyss()
+        print("Seeded The Venomous Abyss (8 bosses).")
+
     return app
 
 
