@@ -1,45 +1,71 @@
 import type { Responsibility } from "../../api/responsibilities";
+import { roleColor } from "../../lib/wowClasses";
 
 interface ResponsibilityListProps {
   responsibilities: Responsibility[];
-  onEdit: (responsibility: Responsibility) => void;
-  onDelete: (id: number) => void;
 }
 
-export function ResponsibilityList({
-  responsibilities,
-  onEdit,
-  onDelete,
-}: ResponsibilityListProps) {
+export function ResponsibilityList({ responsibilities }: ResponsibilityListProps) {
   if (responsibilities.length === 0) {
-    return <p>No hay responsibilities todavía.</p>;
+    return <p className="text-text-muted text-sm">No responsibilities yet.</p>;
   }
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Rol requerido</th>
-          <th>Confianza</th>
-          <th>Experiencia previa</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {responsibilities.map((responsibility) => (
-          <tr key={responsibility.id}>
-            <td>{responsibility.name}</td>
-            <td>{responsibility.requires_role ?? "—"}</td>
-            <td>{responsibility.confidence}</td>
-            <td>{responsibility.requires_prior_experience ? "Sí" : "No"}</td>
-            <td>
-              <button onClick={() => onEdit(responsibility)}>Editar</button>
-              <button onClick={() => onDelete(responsibility.id)}>Borrar</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="flex flex-col gap-2.5">
+      {responsibilities.map((responsibility) => (
+        <div key={responsibility.id} className="bg-surface border border-border rounded-md p-4">
+          <div className="flex items-start justify-between gap-3 mb-1.5">
+            <div>
+              <div className="font-heading font-semibold text-[15px]">{responsibility.name}</div>
+              {responsibility.actor_label && (
+                <div className="text-[12px] text-text-muted mt-0.5">
+                  {responsibility.actor_label}
+                </div>
+              )}
+            </div>
+            <span
+              className={`text-[10.5px] font-mono px-2 py-1 rounded flex-shrink-0 ${
+                responsibility.confidence === "confirmed"
+                  ? "bg-success/20 text-success"
+                  : "bg-warning/20 text-warning"
+              }`}
+            >
+              {responsibility.confidence}
+            </span>
+          </div>
+
+          {responsibility.description && (
+            <div className="text-[12.5px] text-text-muted mb-2.5">
+              {responsibility.description}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {responsibility.requires_role && (
+              <span
+                className="text-[11px] font-semibold px-2 py-1 rounded bg-nav-active"
+                style={{ color: roleColor(responsibility.requires_role) }}
+              >
+                {responsibility.requires_role}
+              </span>
+            )}
+            {responsibility.difficulty_variant && (
+              <span className="text-[11px] font-mono text-text-muted px-2 py-1 rounded border border-border-muted">
+                {responsibility.difficulty_variant}
+              </span>
+            )}
+            {responsibility.requires_prior_experience && (
+              <span className="text-[11px] font-mono text-warning">Requires prior experience</span>
+            )}
+          </div>
+
+          {responsibility.note_line && (
+            <div className="mt-2.5 bg-background border border-border-muted rounded px-3 py-2 font-mono text-[11.5px] text-text-muted">
+              {responsibility.note_line}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }

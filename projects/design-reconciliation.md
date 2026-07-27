@@ -45,14 +45,14 @@ Ajustes pendientes en la REPO (fase de integración de diseño):
 - Renombrar label "Raiders" → "Roster".
 - Agrupar el nav (PLAN / LOGS / SETTINGS).
 - Plegar ActiveNotePage como pestaña Notes dentro de BossDetailPage y quitar la
-  ruta /active-note.
+  ruta /active-note — hecho (Paso 4).
 - Copy de UI en inglés (idioma base) — ya en curso.
 - Mechanic profiles: filtro de rol en el form + validación backend — trazado en #46.
 - Bosses dashboard: solo lectura + navegación a /bosses/:id (contenido curado, ver
-  arriba) — hecho.
-- Responsibilities (Paso 5 pendiente): mismo criterio, es contenido curado — debería
-  perder el formulario de alta/edición/borrado y pasar a solo lectura, igual que
-  Bosses. Revisar al llegar a ese paso, no asumir que sigue el patrón viejo de #3.
+  arriba) — hecho (Paso 3).
+- Responsibilities: mismo criterio, contenido curado — perdió el formulario de
+  alta/edición/borrado, pasó a solo lectura (cards con confidence, role, note_line)
+  — hecho (Paso 5).
 
 ## Criterio de integración diseño ↔ código
 
