@@ -37,6 +37,11 @@ def create_app():
         except Exception as e:
             return jsonify(status="error", db=str(e)), 500
 
+    @app.cli.command("init-db")
+    def init_db_command():
+        db.create_all()
+        print("Tables created.")
+
     @app.cli.command("seed-venomous-abyss")
     def seed_venomous_abyss_command():
         from seeds.venomous_abyss import seed_venomous_abyss
