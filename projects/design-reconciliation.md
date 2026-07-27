@@ -9,13 +9,30 @@ APIs reales hoy: /api/raiders, /api/bosses, /api/responsibilities, /api/position
 MVP real (consistente y priorizado): Bosses dashboard, Boss detail (pestaña Notes),
 Roster, Responsibilities, Mechanic profiles.
 
+## Datos curados vs. datos de usuario
+
+Distinción de producto, no solo técnica — determina qué pantallas llevan CRUD para
+el raid leader y cuáles son de solo lectura/navegación:
+
+- **Contenido curado** (lo mantiene la app/curador — seed + edición a lo largo del
+  patch, sourced de PTR/VODs, como Viserio/MRT): `Boss`, `Responsibility`,
+  `Position`. Las pantallas que muestran este contenido en la app del raid leader
+  son de **solo lectura + navegación**, no formularios de alta/edición/borrado. Los
+  endpoints CRUD de estos modelos siguen existiendo en el backend — son la vía de
+  curador/seed/admin, no la UI del raid leader.
+- **Data de usuario** (la crea/edita el raid leader en la app): `Raider` (roster),
+  `Assignment`, `MechanicProfile`. Estas pantallas sí llevan CRUD completo para el
+  raid leader.
+
 Ajustes pendientes en el DISEÑO (Claude Design):
 1. Agregar al nav (la app ya las tiene): Responsibilities (biblioteca GLOBAL — no
    por-boss; se atan a bosses vía positions) y Mechanic profiles (proficiency por
    raider).
-2. Boss cards: la barra de progreso + conteo X/Y no existe en la API; definir la
-   fórmula (propuesta: responsibilities con assignment / total del boss) o quitarlo
-   en el MVP.
+2. Boss cards: la barra de progreso + conteo "X/Y confirmed" no existe en la API.
+   OJO: "confirmed" apunta a `Responsibility.confidence` (confirmed/unconfirmed —
+   clave porque el raid está en PTR), NO a cobertura de Assignment. Fórmula
+   probable: responsibilities con `confidence: confirmed` / total del boss.
+   Definir y trazar en #49 antes de implementar.
 3. Boss detail = pestañas Assignments (Sprint 3: reasignación/chat/backup) y Notes
    (solo lectura, ya construido).
 4. Marcar como Sprint 3+ (visión, no MVP): Login/auth, Import report, Raid review,
@@ -31,6 +48,11 @@ Ajustes pendientes en la REPO (fase de integración de diseño):
   ruta /active-note.
 - Copy de UI en inglés (idioma base) — ya en curso.
 - Mechanic profiles: filtro de rol en el form + validación backend — trazado en #46.
+- Bosses dashboard: solo lectura + navegación a /bosses/:id (contenido curado, ver
+  arriba) — hecho.
+- Responsibilities (Paso 5 pendiente): mismo criterio, es contenido curado — debería
+  perder el formulario de alta/edición/borrado y pasar a solo lectura, igual que
+  Bosses. Revisar al llegar a ese paso, no asumir que sigue el patrón viejo de #3.
 
 ## Criterio de integración diseño ↔ código
 

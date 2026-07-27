@@ -1,66 +1,59 @@
 import { useEffect, useState } from "react";
-import {
-  getBosses,
-  createBoss,
-  updateBoss,
-  deleteBoss,
-  type Boss,
-  type BossInput,
-} from "../api/bosses";
+import { getBosses, type Boss } from "../api/bosses";
 import { BossList } from "../components/bosses/BossList";
-import { BossForm } from "../components/bosses/BossForm";
 
 export function BossesPage() {
   const [bosses, setBosses] = useState<Boss[]>([]);
-  const [editing, setEditing] = useState<Boss | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    async function load() {
+      try {
+        setBosses(await getBosses());
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    }
     load();
   }, []);
 
-  async function load() {
-    try {
-      setBosses(await getBosses());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    }
-  }
-
-  async function handleSubmit(data: BossInput) {
-    try {
-      if (editing) {
-        await updateBoss(editing.id, data);
-      } else {
-        await createBoss(data);
-      }
-      setEditing(null);
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    }
-  }
-
-  async function handleDelete(id: number) {
-    try {
-      await deleteBoss(id);
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    }
-  }
-
   return (
-    <section>
-      <h1>Bosses</h1>
-      {error && <p role="alert">{error}</p>}
-      <BossForm
-        key={editing?.id ?? "new"}
-        initial={editing ?? undefined}
-        onSubmit={handleSubmit}
-        onCancel={editing ? () => setEditing(null) : undefined}
-      />
-      <BossList bosses={bosses} onEdit={setEditing} onDelete={handleDelete} />
+    <section className="p-8 px-10">
+      <div className="flex items-baseline justify-between gap-4 mb-2">
+        <h1 className="font-heading text-2xl font-semibold">The Venomous Abyss</h1>
+        <div className="text-xs font-mono text-text-muted whitespace-nowrap">
+          {bosses.length} boss{bosses.length === 1 ? "" : "es"}
+        </div>
+      </div>
+      <div className="text-[13px] text-text-muted mb-7">Bosses in this raid tier</div>
+
+      {error && (
+        <p role="alert" className="text-danger text-sm mb-4">
+          {error}
+        </p>
+      )}
+
+      {loading ? (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-surface border border-border rounded-md p-4 flex gap-3.5 items-center"
+            >
+              <div className="w-13 h-13 rounded bg-nav-active flex-shrink-0 animate-pulse" />
+              <div className="flex-1 flex flex-col gap-2">
+                <div className="h-3.5 w-2/3 rounded bg-nav-active animate-pulse" />
+                <div className="h-1.5 w-full rounded bg-nav-active animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <BossList bosses={bosses} />
+      )}
     </section>
   );
 }
