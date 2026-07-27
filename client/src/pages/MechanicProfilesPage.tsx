@@ -3,87 +3,115 @@ import {
   getMechanicProfiles,
   createMechanicProfile,
   updateMechanicProfile,
-  deleteMechanicProfile,
   type MechanicProfile,
-  type MechanicProfileInput,
 } from "../api/mechanicProfiles";
 import { getRaiders, type Raider } from "../api/raiders";
 import { getResponsibilities, type Responsibility } from "../api/responsibilities";
-import { MechanicProfileList } from "../components/mechanicProfiles/MechanicProfileList";
-import { MechanicProfileForm } from "../components/mechanicProfiles/MechanicProfileForm";
+import { getPositions } from "../api/positions";
+import { getBosses, type Boss } from "../api/bosses";
+import { MechanicProfileRaiderList } from "../components/mechanicProfiles/MechanicProfileRaiderList";
+import { MechanicProfileList, type MechanicProfileGroup } from "../components/mechanicProfiles/MechanicProfileList";
 
 export function MechanicProfilesPage() {
-  const [profiles, setProfiles] = useState<MechanicProfile[]>([]);
   const [raiders, setRaiders] = useState<Raider[]>([]);
   const [responsibilities, setResponsibilities] = useState<Responsibility[]>([]);
-  const [editing, setEditing] = useState<MechanicProfile | null>(null);
+  const [bosses, setBosses] = useState<Boss[]>([]);
+  const [bossIdsByResponsibility, setBossIdsByResponsibility] = useState<Map<number, Set<number>>>(
+    new Map(),
+  );
+  const [profiles, setProfiles] = useState<MechanicProfile[]>([]);
+  const [selectedRaiderId, setSelectedRaiderId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    async function load() {
+      try {
+        const [raidersData, responsibilitiesData, bossesData, positionsData, profilesData] =
+          await Promise.all([
+            getRaiders(),
+            getResponsibilities(),
+            getBosses(),
+            getPositions(),
+            getMechanicProfiles(),
+          ]);
+
+        const byResponsibility = new Map<number, Set<number>>();
+        for (const position of positionsData) {
+          if (position.responsibility_id === null) continue;
+          const bossIds = byResponsibility.get(position.responsibility_id) ?? new Set<number>();
+          bossIds.add(position.boss_id);
+          byResponsibility.set(position.responsibility_id, bossIds);
+        }
+
+        setRaiders(raidersData);
+        setResponsibilities(responsibilitiesData);
+        setBosses(bossesData);
+        setBossIdsByResponsibility(byResponsibility);
+        setProfiles(profilesData);
+        setSelectedRaiderId((current) => current ?? raidersData[0]?.id ?? null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+      }
+    }
     load();
   }, []);
 
-  async function load() {
+  async function handleSetLevel(responsibilityId: number, level: string) {
+    if (selectedRaiderId === null) return;
     try {
-      const [profilesData, raidersData, responsibilitiesData] = await Promise.all([
-        getMechanicProfiles(),
-        getRaiders(),
-        getResponsibilities(),
-      ]);
-      setProfiles(profilesData);
-      setRaiders(raidersData);
-      setResponsibilities(responsibilitiesData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    }
-  }
-
-  async function handleSubmit(data: MechanicProfileInput) {
-    try {
-      if (editing) {
-        await updateMechanicProfile(editing.id, data);
+      const existing = profiles.find(
+        (p) => p.raider_id === selectedRaiderId && p.responsibility_id === responsibilityId,
+      );
+      if (existing) {
+        await updateMechanicProfile(existing.id, { proficiency_level: level });
       } else {
-        await createMechanicProfile(data);
+        await createMechanicProfile({
+          raider_id: selectedRaiderId,
+          responsibility_id: responsibilityId,
+          proficiency_level: level,
+        });
       }
-      setEditing(null);
-      await load();
+      setProfiles(await getMechanicProfiles());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     }
   }
 
-  async function handleDelete(id: number) {
-    try {
-      await deleteMechanicProfile(id);
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    }
-  }
+  const selectedRaider = raiders.find((r) => r.id === selectedRaiderId);
+
+  const groups: MechanicProfileGroup[] = selectedRaider
+    ? bosses
+        .map((boss) => ({
+          boss,
+          responsibilities: responsibilities.filter((r) => {
+            const compatible = r.requires_role === null || r.requires_role === selectedRaider.role;
+            return compatible && bossIdsByResponsibility.get(r.id)?.has(boss.id);
+          }),
+        }))
+        .filter((group) => group.responsibilities.length > 0)
+    : [];
 
   return (
-    <section>
-      <h1>Mechanic Profiles</h1>
-      {error && <p role="alert">{error}</p>}
-      {raiders.length === 0 || responsibilities.length === 0 ? (
-        <p>Add at least one raider and one responsibility before creating a mechanic profile.</p>
-      ) : (
-        <MechanicProfileForm
-          key={editing?.id ?? "new"}
-          raiders={raiders}
-          responsibilities={responsibilities}
-          initial={editing ?? undefined}
-          onSubmit={handleSubmit}
-          onCancel={editing ? () => setEditing(null) : undefined}
-        />
+    <section className="p-8 px-10 flex flex-col h-full min-h-0">
+      <h1 className="font-heading text-2xl font-semibold mb-1">Mechanic Profiles</h1>
+      <div className="text-[13px] text-text-muted mb-5.5">
+        Track each raider's experience with specific mechanics.
+      </div>
+
+      {error && (
+        <p role="alert" className="text-danger text-sm mb-4">
+          {error}
+        </p>
       )}
-      <MechanicProfileList
-        profiles={profiles}
-        raiders={raiders}
-        responsibilities={responsibilities}
-        onEdit={setEditing}
-        onDelete={handleDelete}
-      />
+
+      <div className="flex gap-5 flex-1 min-h-0">
+        <MechanicProfileRaiderList
+          raiders={raiders}
+          selectedRaiderId={selectedRaiderId}
+          onSelect={setSelectedRaiderId}
+        />
+        <MechanicProfileList groups={groups} profiles={profiles} onSetLevel={handleSetLevel} />
+      </div>
     </section>
   );
 }

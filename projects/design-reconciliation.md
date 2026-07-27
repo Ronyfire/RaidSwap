@@ -47,7 +47,9 @@ Ajustes pendientes en la REPO (fase de integración de diseño):
 - Plegar ActiveNotePage como pestaña Notes dentro de BossDetailPage y quitar la
   ruta /active-note — hecho (Paso 4).
 - Copy de UI en inglés (idioma base) — ya en curso.
-- Mechanic profiles: filtro de rol en el form + validación backend — trazado en #46.
+- Mechanic profiles: filtro de rol aplicado en el frontend (panel de raider + grid
+  agrupado por boss con botones de proficiency, patrón upsert) — hecho (Paso 6).
+  Validación equivalente en el backend sigue trazada en #46.
 - Bosses dashboard: solo lectura + navegación a /bosses/:id (contenido curado, ver
   arriba) — hecho (Paso 3).
 - Responsibilities: mismo criterio, contenido curado — perdió el formulario de
