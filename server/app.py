@@ -13,9 +13,15 @@ from extensions import db
 PUBLIC_PATHS = {"/health", "/api/auth/register", "/api/auth/login"}
 
 
-def create_app():
+def create_app(config_overrides=None):
+    # config_overrides must be applied before db.init_app() — Flask-SQLAlchemy
+    # reads SQLALCHEMY_DATABASE_URI at init_app() time and ignores later
+    # app.config changes, so patching app.config after create_app() (as tests
+    # used to) silently keeps using the real DATABASE_URL from .env.
     app = Flask(__name__)
     app.config.from_object(Config)
+    if config_overrides:
+        app.config.update(config_overrides)
 
     db.init_app(app)
     CORS(app)
