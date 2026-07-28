@@ -2,6 +2,14 @@ import pytest
 
 from app import create_app
 from extensions import db
+from services import rate_limiter
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    rate_limiter.reset()
+    yield
+    rate_limiter.reset()
 
 
 @pytest.fixture
