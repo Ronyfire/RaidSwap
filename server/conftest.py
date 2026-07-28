@@ -14,8 +14,7 @@ def reset_rate_limiter():
 
 @pytest.fixture
 def app():
-    app = create_app()
-    app.config.update(SQLALCHEMY_DATABASE_URI="sqlite:///:memory:", TESTING=True)
+    app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "TESTING": True})
 
     with app.app_context():
         db.create_all()
