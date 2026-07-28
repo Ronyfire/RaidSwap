@@ -30,6 +30,7 @@ def create_app():
     from routes.positions import positions_bp
     from routes.mechanic_profiles import mechanic_profiles_bp
     from routes.assignments import assignments_bp
+    from routes.agent import agent_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(raiders_bp)
@@ -38,6 +39,7 @@ def create_app():
     app.register_blueprint(positions_bp)
     app.register_blueprint(mechanic_profiles_bp)
     app.register_blueprint(assignments_bp)
+    app.register_blueprint(agent_bp)
 
     @app.before_request
     def require_auth():
