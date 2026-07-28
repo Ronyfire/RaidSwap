@@ -4,11 +4,13 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export class ApiError extends Error {
   status: number;
+  body: Record<string, unknown>;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, body: Record<string, unknown> = {}) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -25,7 +27,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ error: response.statusText }));
-    throw new ApiError(body.error ?? "Request failed", response.status);
+    throw new ApiError(body.error ?? "Request failed", response.status, body);
   }
 
   if (response.status === 204) {

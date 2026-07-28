@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { sendAgentMessage, applyProposal, type AgentMessage, type AgentProposal } from "../../api/agent";
+import { ApiError } from "../../api/client";
 
 interface AgentChatProps {
   onApplied: () => void;
@@ -11,6 +12,13 @@ export function AgentChat({ onApplied }: AgentChatProps) {
   const [proposal, setProposal] = useState<AgentProposal | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const id = setInterval(() => setCooldownSeconds((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [cooldownSeconds]);
 
   async function handleSend() {
     const text = input.trim();
@@ -40,7 +48,11 @@ export function AgentChat({ onApplied }: AgentChatProps) {
       setProposal(null);
       onApplied();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      if (err instanceof ApiError && err.status === 429) {
+        setCooldownSeconds(Number(err.body.retry_after_seconds) || 60);
+      } else {
+        setError(err instanceof Error ? err.message : "Unknown error");
+      }
     }
   }
 
@@ -85,9 +97,10 @@ export function AgentChat({ onApplied }: AgentChatProps) {
           <div className="flex gap-2">
             <button
               onClick={handleApply}
-              className="flex-1 bg-accent border-none rounded px-3 py-2 text-accent-ink font-bold text-[12.5px]"
+              disabled={cooldownSeconds > 0}
+              className="flex-1 bg-accent border-none rounded px-3 py-2 text-accent-ink font-bold text-[12.5px] disabled:opacity-50"
             >
-              Apply
+              {cooldownSeconds > 0 ? `Wait ${cooldownSeconds}s` : "Apply"}
             </button>
             <button
               onClick={() => setProposal(null)}
