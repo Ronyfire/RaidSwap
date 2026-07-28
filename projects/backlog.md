@@ -24,27 +24,42 @@
 
 ---
 
-Antes de arrancar Sprint 3: ver [design-reconciliation.md](./design-reconciliation.md)
-— reconciliación entre la visión completa de Claude Design y el alcance real del MVP.
+## Integración de diseño (Claude Design → repo) ✅ (completo)
 
-## Sprint 3 — Autenticación + arranque del agente
-
-- [ ] Auth JWT (login/registro, solo para raid leader/admin)
-- [ ] Protección de rutas backend (endpoints requieren token)
-- [ ] Rutas protegidas en frontend (redirect si no hay sesión)
-- [ ] Integración inicial con Kimi K2.6 vía OpenRouter (llamada básica, sin tool calling aún)
-- [ ] Diseño de las tools del agente: consultar roster, consultar MechanicProfile, aplicar reasignación
-- [ ] Chat UI mínimo (input + lista de mensajes)
+- [x] 6 pasos — tokens/shell, Roster, Bosses dashboard, Boss detail, Responsibilities,
+      Mechanic profiles (PR #52). Ver [design-reconciliation.md](./design-reconciliation.md)
+      para el criterio de integración y la reconciliación diseño↔MVP.
+- Follow-ups abiertos, trazados como issues: #46 (validación backend del filtro de
+  rol en Mechanic profiles), #41 (i18n — inglés base + toggle ES), #49 (métrica
+  real de la boss card, confidence-based).
 
 ---
 
-## Sprint 4 — Complementos y mejoras (agente completo + integraciones opcionales)
+## Sprint 3 — Motor de reasignación y agente (auth al final)
 
-- [ ] Motor de reasignación completo: cascada WCL → perfil manual → preguntar al raid leader
-- [ ] Lógica de "cambio mínimo necesario" (no recalcular toda la composición)
+Reordenado: el auth es un gate único de admin (email/password, no multi-tenant),
+diferirlo es de bajo riesgo. Prioridad es el core del producto.
+
+1. [ ] **Agente / motor de reasignación**: tools (consultar roster, consultar
+   MechanicProfile, aplicar reasignación) + Kimi K2.6 vía OpenRouter + cascada
+   WCL → perfil manual → preguntar al raid leader, aplicando siempre el cambio
+   mínimo necesario (no recalcular toda la composición). Primera versión funciona
+   solo con MechanicProfile; WCL se integra después. Incluye chat UI mínimo
+   (input + lista de mensajes).
+2. [ ] **Export de nota MRT/NSRT** (Northern Sky): ensamblar la nota del boss y
+   exportarla copiable para el addon, sobre el `note_line` ya existente.
+3. [ ] **Raid plan visual** (#19): overlay de positions sobre imagen de fondo.
+4. [ ] **Integraciones/APIs** (#20), detrás de adapters: Blizzard Game Data API,
+   Warcraft Logs, WoWAudit, Raider.IO.
+5. [ ] **Auth JWT** — al final: login/registro (solo raid leader/admin),
+   protección de rutas backend (endpoints requieren token), rutas protegidas en
+   frontend (redirect si no hay sesión).
+
+---
+
+## Sprint 4 — Refinamiento y limpieza
+
 - [ ] Reglas espaciales melee/ranged en Position al reasignar
-- [ ] Overlay visual del raid plan (imagen de fondo + capa de posiciones) — stretch goal
-- [ ] Integraciones opcionales, si hay tiempo: Blizzard Game Data API (bosses/imágenes), WoWAudit (roster/asistencia), Warcraft Logs (histórico de mecánicas)
 - [ ] Refactor y limpieza de lo construido en S2-S3
 
 ---
