@@ -7,7 +7,7 @@ import { getAssignments, type Assignment } from "../api/assignments";
 import { getRaiders, type Raider } from "../api/raiders";
 import { useRaidContext } from "../context/useRaidContext";
 import { classColor } from "../lib/wowClasses";
-import { SoonBadge } from "../components/SoonBadge";
+import { AgentChat } from "../components/agent/AgentChat";
 
 const ICON_COLORS = [
   classColor("Warrior"),
@@ -58,6 +58,7 @@ export function BossDetailPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [raiders, setRaiders] = useState<Raider[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -90,7 +91,7 @@ export function BossDetailPage() {
       }
     }
     load();
-  }, [bossId, setSelectedBoss]);
+  }, [bossId, setSelectedBoss, refreshKey]);
 
   function raidersFor(responsibilityId: number): Raider[] {
     const raiderIds = assignments
@@ -123,7 +124,6 @@ export function BossDetailPage() {
       <div className="px-8 pt-3.5 flex gap-1">
         <button className={tabClass(tab === "assignments")} onClick={() => setTab("assignments")}>
           Assignments
-          <SoonBadge />
         </button>
         <button className={tabClass(tab === "notes")} onClick={() => setTab("notes")}>
           Notes
@@ -132,8 +132,8 @@ export function BossDetailPage() {
 
       <div className="p-8 pt-0">
         {tab === "assignments" && (
-          <div className="mt-6 bg-surface border border-dashed border-border-strong rounded-md px-3.5 py-2.5 text-[12px] text-text-muted">
-            Reassignment, chat, and backup assignees are coming in Sprint 3.
+          <div className="mt-6 max-w-[420px]">
+            <AgentChat onApplied={() => setRefreshKey((k) => k + 1)} />
           </div>
         )}
 
