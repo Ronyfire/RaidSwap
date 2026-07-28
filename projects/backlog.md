@@ -35,25 +35,32 @@
 
 ---
 
-## Sprint 3 — Motor de reasignación y agente (auth al final)
+## Sprint 3 — Motor de reasignación, agente y entrega a testers
 
-Reordenado: el auth es un gate único de admin (email/password, no multi-tenant),
-diferirlo es de bajo riesgo. Prioridad es el core del producto.
+Camino crítico para llegar a feedback real (10-15 raid leaders testers) lo antes
+posible: agente → auth → rate limiting → entrega. Auth NO es lo último del
+sprint — es la puerta de la fase de testeo, porque el rate limiting por usuario
+necesita identidad. Ver [agent-architecture.md](./agent-architecture.md) para el
+diseño de proveedor/modelo y límites de uso.
 
 1. [ ] **Agente / motor de reasignación**: tools (consultar roster, consultar
    MechanicProfile, aplicar reasignación) + Kimi K2.6 vía OpenRouter + cascada
    WCL → perfil manual → preguntar al raid leader, aplicando siempre el cambio
    mínimo necesario (no recalcular toda la composición). Primera versión funciona
-   solo con MechanicProfile; WCL se integra después. Incluye chat UI mínimo
-   (input + lista de mensajes).
-2. [ ] **Export de nota MRT/NSRT** (Northern Sky): ensamblar la nota del boss y
+   solo con MechanicProfile; WCL se integra después. Propone el cambio (diff
+   de→a) para que el raid leader confirme antes de aplicarlo — no lo aplica
+   directo. Incluye chat UI mínimo (input + lista de mensajes).
+2. [ ] **Auth JWT** (#10): login/registro (solo raid leader/admin), protección
+   de rutas backend, rutas protegidas en frontend. Habilitador de identidad por
+   usuario — necesario para el punto 3.
+3. [ ] **Rate limiting por usuario y por acción** (cooldowns por tier — #54, #55,
+   ver agent-architecture.md).
+4. [ ] **→ Entrega a testers** (10-15 raid leaders) — checkpoint de feedback real.
+5. [ ] **Export de nota MRT/NSRT** (Northern Sky): ensamblar la nota del boss y
    exportarla copiable para el addon, sobre el `note_line` ya existente.
-3. [ ] **Raid plan visual** (#19): overlay de positions sobre imagen de fondo.
-4. [ ] **Integraciones/APIs** (#20), detrás de adapters: Blizzard Game Data API,
+6. [ ] **Raid plan visual** (#19): overlay de positions sobre imagen de fondo.
+7. [ ] **Integraciones/APIs** (#20), detrás de adapters: Blizzard Game Data API,
    Warcraft Logs, WoWAudit, Raider.IO.
-5. [ ] **Auth JWT** — al final: login/registro (solo raid leader/admin),
-   protección de rutas backend (endpoints requieren token), rutas protegidas en
-   frontend (redirect si no hay sesión).
 
 ---
 
