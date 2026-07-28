@@ -5,6 +5,20 @@ from sqlalchemy import event
 from extensions import db
 
 
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    # "free" is the only tier in use today — see #55/#56 in projects/agent-architecture.md
+    # for the "member" tier + BYOK + billing hooks this leaves room for.
+    tier = db.Column(db.String(20), nullable=False, default="free")
+
+    def to_dict(self):
+        return {"id": self.id, "email": self.email, "tier": self.tier}
+
+
 class Raider(db.Model):
     __tablename__ = "raiders"
 
