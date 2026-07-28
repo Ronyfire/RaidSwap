@@ -5,20 +5,9 @@ See projects/agent-architecture.md. In-memory on purpose — plenty for the
 is an acceptable trade-off at this scale. Revisit (Redis, a DB table) only if
 that stops being true.
 
-Not wired into any route yet: this needs both routes/agent.py (feature/agent-
-core) and JWT identity + User.tier (feature/auth-jwt), neither of which is on
-this branch, since both are still unmerged siblings of this one. Once both
-land, wiring POST /api/agent/apply looks like:
-
-    from flask_jwt_extended import get_jwt_identity
-    from services.rate_limiter import check_rate_limit
-
-    user = db.session.get(User, int(get_jwt_identity()))
-    result = check_rate_limit(user.id, "note_change", user.tier)
-    if not result["allowed"]:
-        return jsonify(error="Rate limit exceeded", retry_after_seconds=result["retry_after_seconds"]), 429
-
-That's a config lookup + an early return, not a rearchitecture.
+Wired into POST /api/agent/apply (see routes/agent.py) — a User lookup by JWT
+identity, a check_rate_limit call keyed on user.tier, and an early 429 with
+retry_after_seconds when the cooldown hasn't elapsed.
 """
 
 from collections import defaultdict

@@ -28,7 +28,13 @@ def app():
 def client(app):
     from flask_jwt_extended import create_access_token
 
-    token = create_access_token(identity="1")
+    from models import User
+
+    user = User(email="leader@guild.gg", password_hash="unused", tier="free")
+    db.session.add(user)
+    db.session.commit()
+
+    token = create_access_token(identity=str(user.id))
     test_client = app.test_client()
     test_client.environ_base["HTTP_AUTHORIZATION"] = f"Bearer {token}"
     return test_client
