@@ -6,12 +6,13 @@ OpenRouter is implemented, picked via AI_PROVIDER. Adding a second provider
 not touching run_agent_turn() or anything that calls it.
 
 Model default: NOT Kimi K2 free (explicitly excluded — see architecture doc).
-Picked google/gemini-2.0-flash-exp:free on documented reputation for reliable
-free-tier tool-calling on OpenRouter. This has NOT been live-smoke-tested
-against a real API key (none was available while building this) — run
-server/scripts/smoke_test_model.py once OPENROUTER_API_KEY is set, and swap
-OPENROUTER_MODEL in .env if it turns out to be unreliable. Swapping is a
-one-line config change, nothing else needs to change.
+google/gemini-2.0-flash-exp:free and meta-llama/llama-3.3-70b-instruct:free
+were both smoke-tested and 404'd (pulled from OpenRouter's free tier).
+Landed on openrouter/free — OpenRouter's own auto-router, which picks among
+whatever free models are currently live and filters for tool-calling support
+— so individual free-slug churn doesn't break this app again. Smoke-tested
+2026-07-28 with a real key: correctly called get_roster. Swap OPENROUTER_MODEL
+in .env for a pinned single model if the routing ever proves unreliable.
 """
 
 import json
@@ -21,7 +22,7 @@ from openai import OpenAI
 
 from services import agent_tools
 
-_DEFAULT_MODEL = "google/gemini-2.0-flash-exp:free"
+_DEFAULT_MODEL = "openrouter/free"
 _MAX_TOOL_ITERATIONS = 5
 
 SYSTEM_PROMPT = """You are RaidSwap's raid assignment assistant. You help a WoW \

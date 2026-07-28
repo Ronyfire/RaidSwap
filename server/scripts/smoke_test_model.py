@@ -10,10 +10,12 @@ prose instead of calling get_roster, that model's tool-calling isn't reliable
 enough for this app — try another candidate (see suggestions below) and update
 OPENROUTER_MODEL in .env once one works.
 
-Free-tier candidates worth trying, in the order this script's author would try
-them (Kimi K2 free is explicitly excluded — see projects/agent-architecture.md):
-  - google/gemini-2.0-flash-exp:free
-  - meta-llama/llama-3.3-70b-instruct:free
+2026-07-28: google/gemini-2.0-flash-exp:free and meta-llama/llama-3.3-70b-instruct:free
+both 404'd (pulled from OpenRouter's free tier). openrouter/free — OpenRouter's own
+auto-router across live free models, filtered for tool-calling support — passed and
+is now the default, so individual free-slug churn doesn't break this again. If it
+ever needs to be pinned to one model (Kimi K2 free is explicitly excluded — see
+projects/agent-architecture.md), try:
   - deepseek/deepseek-chat-v3-0324:free
 """
 
@@ -40,7 +42,7 @@ TOOLS = [
 
 def main():
     model = sys.argv[1] if len(sys.argv) > 1 else os.environ.get(
-        "OPENROUTER_MODEL", "google/gemini-2.0-flash-exp:free"
+        "OPENROUTER_MODEL", "openrouter/free"
     )
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
