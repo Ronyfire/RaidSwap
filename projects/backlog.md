@@ -43,18 +43,28 @@ sprint — es la puerta de la fase de testeo, porque el rate limiting por usuari
 necesita identidad. Ver [agent-architecture.md](./agent-architecture.md) para el
 diseño de proveedor/modelo y límites de uso.
 
-1. [ ] **Agente / motor de reasignación**: tools (consultar roster, consultar
-   MechanicProfile, aplicar reasignación) + Kimi K2.6 vía OpenRouter + cascada
-   WCL → perfil manual → preguntar al raid leader, aplicando siempre el cambio
-   mínimo necesario (no recalcular toda la composición). Primera versión funciona
-   solo con MechanicProfile; WCL se integra después. Propone el cambio (diff
-   de→a) para que el raid leader confirme antes de aplicarlo — no lo aplica
-   directo. Incluye chat UI mínimo (input + lista de mensajes).
-2. [ ] **Auth JWT** (#10): login/registro (solo raid leader/admin), protección
-   de rutas backend, rutas protegidas en frontend. Habilitador de identidad por
-   usuario — necesario para el punto 3.
-3. [ ] **Rate limiting por usuario y por acción** (cooldowns por tier — #54, #55,
-   ver agent-architecture.md).
+Puntos 1-3 completos e integrados en `develop` (2026-07-28). De paso, dos fixes
+encontrados durante la integración: PR #60 (modelo default del agente, ver
+punto 1) y PR #62 (causa raíz de la pérdida de tablas en la Postgres de dev —
+pytest corría contra la DB real en vez de SQLite, no relacionado con Docker/WSL2
+como se sospechaba antes).
+
+1. [x] **Agente / motor de reasignación** (PR #59, fix de modelo default PR
+   #60): tools (consultar roster, consultar MechanicProfile, aplicar
+   reasignación) + adapter provider-agnóstico vía OpenRouter (modelo default:
+   `openrouter/free`, auto-router de OpenRouter — Kimi K2 queda excluido a
+   propósito) + cascada perfil manual → preguntar al raid leader, aplicando
+   siempre el cambio mínimo necesario (no recalcular toda la composición). WCL
+   todavía no integrado. Propone el cambio (diff de→a) para que el raid leader
+   confirme antes de aplicarlo — no lo aplica directo. Incluye chat UI mínimo
+   (input + lista de mensajes). e2e verificado con la API real.
+2. [x] **Auth JWT** (#10, PR #58): login/registro (solo raid leader/admin),
+   protección de rutas backend (gate único vía `before_request`), rutas
+   protegidas en frontend. Habilitador de identidad por usuario — necesario
+   para el punto 3.
+3. [x] **Rate limiting por usuario y por acción** (cooldowns por tier — #54,
+   #55, PR #61, ver agent-architecture.md). Wireado en
+   `POST /api/agent/apply`, con countdown en el chat del frontend.
 4. [ ] **→ Entrega a testers** (10-15 raid leaders) — checkpoint de feedback real.
 5. [ ] **Export de nota MRT/NSRT** (Northern Sky): ensamblar la nota del boss y
    exportarla copiable para el addon, sobre el `note_line` ya existente.

@@ -9,7 +9,7 @@ RaidSwap lets the raid leader write a roster change in natural language (e.g. "s
 - Decides whether the incoming player should inherit the outgoing player's mechanic
 - Validates whether they can cover it, using the mechanic profile stored in the app (and optionally cross-checking Warcraft Logs history if available)
 - Applies the minimal necessary change to the note, without recalculating the whole composition
-- Updates the visual raid plan with the new assignment
+- Updates the visual raid plan with the new assignment _(planned, not built yet — see #19)_
 
 Initially focused on **The Venomous Abyss** (WoW Midnight, Patch 12.1).
 
@@ -23,7 +23,7 @@ Existing tools (WoWUtils, RaidPlan.io) solve part of the problem, but none of th
 **Backend:** Flask + SQLAlchemy
 **Database:** PostgreSQL
 **Auth:** JWT
-**AI:** Kimi K2.6 (via OpenRouter)
+**AI:** OpenRouter, provider-agnostic adapter (default model: `openrouter/free`, OpenRouter's own auto-router across live free tool-calling models)
 
 ## Repo structure
 
@@ -40,4 +40,18 @@ In development — built as part of the Labs by 4Geeks program (6-week Full Stac
 
 ## Installation
 
-_(To be completed once backend/frontend dependencies are set up)_
+1. **Database** — `docker compose up -d` (Postgres 16, `raidswap-db-1` on `localhost:5433`)
+2. **Backend** (from `server/`):
+   ```bash
+   pipenv install
+   cp .env.example .env   # fill in JWT_SECRET_KEY and OPENROUTER_API_KEY
+   pipenv run flask init-db
+   pipenv run flask seed-venomous-abyss
+   pipenv run flask run
+   ```
+3. **Frontend** (from `client/`):
+   ```bash
+   npm install
+   cp .env.example .env
+   npm run dev
+   ```
