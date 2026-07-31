@@ -2,6 +2,7 @@ import pytest
 
 from services.agent_tools import (
     apply_reassignment,
+    get_boss_context,
     get_mechanic_profile,
     get_roster,
     propose_reassignment,
@@ -213,3 +214,29 @@ def test_apply_reassignment_raider_not_found_raises(client):
 
     with pytest.raises(ValueError):
         apply_reassignment({"responsibility_name": "Interrupt", "to_raider_name": "Nobody"})
+
+
+def test_get_boss_context_returns_boss_name_and_responsibilities(client):
+    boss = make_boss(client)
+    interrupt = make_responsibility(client, name="Interrupt")
+    tank_swap = make_responsibility(client, name="Tank swap")
+    link_to_boss(client, boss["id"], interrupt["id"])
+    link_to_boss(client, boss["id"], tank_swap["id"])
+
+    context = get_boss_context(boss["id"])
+
+    assert context["boss_name"] == "Nek'zali the Soulcoiler"
+    assert set(context["responsibility_names"]) == {"Interrupt", "Tank swap"}
+
+
+def test_get_boss_context_unknown_boss_returns_none(client):
+    assert get_boss_context(999) is None
+
+
+def test_get_boss_context_ignores_positions_without_responsibility(client):
+    boss = make_boss(client)
+    client.post("/api/positions", json={"x": 1, "y": 1, "boss_id": boss["id"]})
+
+    context = get_boss_context(boss["id"])
+
+    assert context["responsibility_names"] == []

@@ -133,7 +133,7 @@ export function BossDetailPage() {
       <div className="p-8 pt-0">
         {tab === "assignments" && (
           <div className="mt-6 max-w-[420px]">
-            <AgentChat onApplied={() => setRefreshKey((k) => k + 1)} />
+            <AgentChat onApplied={() => setRefreshKey((k) => k + 1)} bossId={bossId} />
           </div>
         )}
 

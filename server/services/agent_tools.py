@@ -28,6 +28,27 @@ def _find_responsibility(name: str) -> Responsibility | None:
     return Responsibility.query.filter(db.func.lower(Responsibility.name) == name.lower()).first()
 
 
+def get_boss_context(boss_id: int) -> dict | None:
+    """Boss name + its responsibility names, for injecting into the agent's
+    conversation as context — NOT an LLM-callable tool. Lets the model resolve
+    informal references ("the interrupt") to an exact responsibility name, and
+    skip asking which boss, when the raid leader is already on that boss's page.
+    """
+    boss = db.session.get(Boss, boss_id)
+    if boss is None:
+        return None
+
+    responsibility_names = []
+    seen_ids = set()
+    for position in Position.query.filter_by(boss_id=boss_id).all():
+        responsibility = position.responsibility
+        if responsibility is not None and responsibility.id not in seen_ids:
+            seen_ids.add(responsibility.id)
+            responsibility_names.append(responsibility.name)
+
+    return {"boss_name": boss.name, "responsibility_names": responsibility_names}
+
+
 def _role_compatible(raider: Raider, responsibility: Responsibility) -> bool:
     return responsibility.requires_role is None or responsibility.requires_role == raider.role
 

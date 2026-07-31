@@ -17,7 +17,7 @@ def chat():
     if not messages:
         return jsonify(error="messages is required"), 400
 
-    result = run_agent_turn(messages)
+    result = run_agent_turn(messages, boss_id=data.get("boss_id"))
     return jsonify(result)
 
 

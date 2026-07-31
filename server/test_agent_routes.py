@@ -34,7 +34,19 @@ def test_chat_delegates_to_agent_service(mock_run, client):
 
     assert resp.status_code == 200
     assert resp.get_json() == {"message": "hi there", "proposal": None}
-    mock_run.assert_called_once_with([{"role": "user", "content": "hi"}])
+    mock_run.assert_called_once_with([{"role": "user", "content": "hi"}], boss_id=None)
+
+
+@patch("routes.agent.run_agent_turn")
+def test_chat_passes_boss_id_through(mock_run, client):
+    mock_run.return_value = {"message": "hi there", "proposal": None}
+
+    client.post(
+        "/api/agent/chat",
+        json={"messages": [{"role": "user", "content": "hi"}], "boss_id": 3},
+    )
+
+    mock_run.assert_called_once_with([{"role": "user", "content": "hi"}], boss_id=3)
 
 
 def test_apply_requires_proposal(client):

@@ -16,11 +16,13 @@ def _response(content=None, tool_calls=None):
     return SimpleNamespace(choices=[SimpleNamespace(message=message)])
 
 
-def _fake_client(*responses):
+def _fake_client(*responses, captured_calls=None):
     """A stand-in for the OpenAI client: returns each response in sequence."""
     remaining = list(responses)
 
     def create(**kwargs):
+        if captured_calls is not None:
+            captured_calls.append(kwargs)
         return remaining.pop(0)
 
     return SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
@@ -86,6 +88,57 @@ def test_run_agent_turn_captures_pending_proposal(mock_get_client, client):
     assert result["message"] == "I'd put New on Interrupt — want me to apply it?"
     assert result["proposal"]["to_raider_name"] == "New"
     assert result["proposal"]["responsibility_name"] == "Interrupt"
+
+
+@patch("services.agent_service._get_client")
+def test_run_agent_turn_injects_boss_context_when_boss_id_given(mock_get_client, client):
+    boss = client.post(
+        "/api/bosses", json={"name": "Test Boss", "raid": "The Venomous Abyss", "order": 1}
+    ).get_json()
+    resp = client.post("/api/responsibilities", json={"name": "Interrupt"}).get_json()
+    client.post(
+        "/api/positions",
+        json={"x": 1, "y": 1, "boss_id": boss["id"], "responsibility_id": resp["id"]},
+    )
+
+    calls = []
+    mock_get_client.return_value = _fake_client(
+        _response(content="Sure thing"), captured_calls=calls
+    )
+
+    run_agent_turn([{"role": "user", "content": "hi"}], boss_id=boss["id"])
+
+    system_messages = [m["content"] for m in calls[0]["messages"] if m["role"] == "system"]
+    assert len(system_messages) == 2
+    assert "Test Boss" in system_messages[1]
+    assert "Interrupt" in system_messages[1]
+
+
+@patch("services.agent_service._get_client")
+def test_run_agent_turn_without_boss_id_has_no_context_message(mock_get_client):
+    calls = []
+    mock_get_client.return_value = _fake_client(
+        _response(content="Sure thing"), captured_calls=calls
+    )
+
+    run_agent_turn([{"role": "user", "content": "hi"}])
+
+    system_messages = [m["content"] for m in calls[0]["messages"] if m["role"] == "system"]
+    assert len(system_messages) == 1
+
+
+@patch("services.agent_service._get_client")
+def test_run_agent_turn_unknown_boss_id_skips_context_silently(mock_get_client, client):
+    calls = []
+    mock_get_client.return_value = _fake_client(
+        _response(content="Sure thing"), captured_calls=calls
+    )
+
+    result = run_agent_turn([{"role": "user", "content": "hi"}], boss_id=999)
+
+    system_messages = [m["content"] for m in calls[0]["messages"] if m["role"] == "system"]
+    assert len(system_messages) == 1
+    assert result["message"] == "Sure thing"
 
 
 @patch("services.agent_service._get_client")
