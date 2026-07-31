@@ -49,3 +49,30 @@ def test_delete_boss(client):
 def test_get_boss_not_found(client):
     resp = client.get("/api/bosses/999")
     assert resp.status_code == 404
+
+
+def test_get_boss_note_not_found(client):
+    resp = client.get("/api/bosses/999/note")
+    assert resp.status_code == 404
+
+
+def test_get_boss_note_assembles_responsibility_lines(client):
+    boss_id = make_boss(client).get_json()["id"]
+    resp_id = client.post(
+        "/api/responsibilities",
+        json={"name": "Interrupt", "note_line": "ph:1;tag:Sylvi;"},
+    ).get_json()["id"]
+    client.post(
+        "/api/positions",
+        json={"x": 0, "y": 0, "boss_id": boss_id, "responsibility_id": resp_id},
+    )
+
+    resp = client.get(f"/api/bosses/{boss_id}/note")
+    assert resp.status_code == 200
+    assert resp.get_json()["note"] == "Interrupt: ph:1;tag:Sylvi;"
+
+
+def test_get_boss_note_empty_when_no_responsibilities(client):
+    boss_id = make_boss(client).get_json()["id"]
+    resp = client.get(f"/api/bosses/{boss_id}/note")
+    assert resp.get_json()["note"] == ""

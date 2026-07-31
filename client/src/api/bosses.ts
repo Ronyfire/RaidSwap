@@ -17,6 +17,10 @@ export function getBoss(id: number): Promise<Boss> {
   return apiFetch<Boss>(`/api/bosses/${id}`);
 }
 
+export function getBossNote(id: number): Promise<string> {
+  return apiFetch<{ note: string }>(`/api/bosses/${id}/note`).then((r) => r.note);
+}
+
 export function createBoss(data: BossInput): Promise<Boss> {
   return apiFetch<Boss>("/api/bosses", {
     method: "POST",

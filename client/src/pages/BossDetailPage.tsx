@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getBoss, type Boss } from "../api/bosses";
+import { getBoss, getBossNote, type Boss } from "../api/bosses";
 import { getPositions } from "../api/positions";
 import { getResponsibilities, type Responsibility } from "../api/responsibilities";
 import { getAssignments, type Assignment } from "../api/assignments";
@@ -57,19 +57,22 @@ export function BossDetailPage() {
   const [responsibilities, setResponsibilities] = useState<Responsibility[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [raiders, setRaiders] = useState<Raider[]>([]);
+  const [note, setNote] = useState("");
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function load() {
       try {
-        const [bossData, positionsData, responsibilitiesData, assignmentsData, raidersData] =
+        const [bossData, positionsData, responsibilitiesData, assignmentsData, raidersData, noteData] =
           await Promise.all([
             getBoss(bossId),
             getPositions(bossId),
             getResponsibilities(),
             getAssignments(),
             getRaiders(),
+            getBossNote(bossId),
           ]);
 
         const responsibilityIds = new Set(
@@ -86,12 +89,19 @@ export function BossDetailPage() {
         setResponsibilities(bossResponsibilities);
         setAssignments(assignmentsData);
         setRaiders(raidersData);
+        setNote(noteData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       }
     }
     load();
   }, [bossId, setSelectedBoss, refreshKey]);
+
+  async function copyNote() {
+    await navigator.clipboard.writeText(note);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
 
   function raidersFor(responsibilityId: number): Raider[] {
     const raiderIds = assignments
@@ -134,6 +144,23 @@ export function BossDetailPage() {
         {tab === "assignments" && (
           <div className="mt-6 max-w-[420px]">
             <AgentChat onApplied={() => setRefreshKey((k) => k + 1)} />
+          </div>
+        )}
+
+        {tab === "notes" && note && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="font-heading font-semibold text-[13.5px]">Export note (MRT/NSRT)</div>
+              <button
+                onClick={copyNote}
+                className="text-[12px] font-semibold px-2.5 py-1 rounded border border-border-strong text-text-muted"
+              >
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+            <pre className="bg-background border border-border-muted rounded px-3 py-2.5 font-mono text-[12px] leading-6 text-text-muted whitespace-pre-wrap">
+              {note}
+            </pre>
           </div>
         )}
 

@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 
 from extensions import db
 from models import Boss
+from services.note_service import assemble_boss_note
 
 bosses_bp = Blueprint("bosses", __name__, url_prefix="/api/bosses")
 
@@ -19,6 +20,14 @@ def get_boss(boss_id):
     if boss is None:
         return jsonify(error="Boss not found"), 404
     return jsonify(boss.to_dict())
+
+
+@bosses_bp.get("/<int:boss_id>/note")
+def get_boss_note(boss_id):
+    boss = db.session.get(Boss, boss_id)
+    if boss is None:
+        return jsonify(error="Boss not found"), 404
+    return jsonify(note=assemble_boss_note(boss_id))
 
 
 @bosses_bp.post("")
