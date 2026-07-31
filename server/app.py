@@ -76,6 +76,13 @@ def create_app(config_overrides=None):
         seed_venomous_abyss()
         print("Seeded The Venomous Abyss (8 bosses).")
 
+    @app.cli.command("seed-curation")
+    def seed_curation_command():
+        from seeds.curation import seed_curation
+
+        seed_curation()
+        print("Seeded PTR curation data (roster, responsibilities, positions, assignments).")
+
     return app
 
 
