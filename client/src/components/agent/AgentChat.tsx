@@ -4,9 +4,10 @@ import { ApiError } from "../../api/client";
 
 interface AgentChatProps {
   onApplied: () => void;
+  bossId?: number;
 }
 
-export function AgentChat({ onApplied }: AgentChatProps) {
+export function AgentChat({ onApplied, bossId }: AgentChatProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [input, setInput] = useState("");
   const [proposal, setProposal] = useState<AgentProposal | null>(null);
@@ -31,7 +32,7 @@ export function AgentChat({ onApplied }: AgentChatProps) {
     setError(null);
     setLoading(true);
     try {
-      const result = await sendAgentMessage(nextMessages);
+      const result = await sendAgentMessage(nextMessages, bossId);
       setMessages([...nextMessages, { role: "assistant", content: result.message }]);
       setProposal(result.proposal);
     } catch (err) {

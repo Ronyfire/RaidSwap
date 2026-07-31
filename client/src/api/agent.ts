@@ -18,10 +18,13 @@ export interface AgentChatResponse {
   proposal: AgentProposal | null;
 }
 
-export function sendAgentMessage(messages: AgentMessage[]): Promise<AgentChatResponse> {
+export function sendAgentMessage(
+  messages: AgentMessage[],
+  bossId?: number,
+): Promise<AgentChatResponse> {
   return apiFetch<AgentChatResponse>("/api/agent/chat", {
     method: "POST",
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, boss_id: bossId }),
   });
 }
 

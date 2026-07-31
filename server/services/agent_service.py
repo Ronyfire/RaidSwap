@@ -112,17 +112,43 @@ def _get_model() -> str:
     return os.environ.get("OPENROUTER_MODEL", _DEFAULT_MODEL)
 
 
-def run_agent_turn(messages: list[dict]) -> dict:
+def _boss_context_message(boss_id: int) -> dict | None:
+    context = agent_tools.get_boss_context(boss_id)
+    if context is None:
+        return None
+    names = ", ".join(f'"{n}"' for n in context["responsibility_names"])
+    return {
+        "role": "system",
+        "content": (
+            f'The raid leader is currently viewing "{context["boss_name"]}". '
+            "Assume that's the boss they mean unless they clearly say otherwise "
+            "— don't ask them to name it. "
+            f"Its responsibilities are: {names or '(none yet)'}. "
+            "Map informal references (e.g. \"the interrupt\") to the exact "
+            "responsibility name from this list before calling propose_reassignment."
+        ),
+    }
+
+
+def run_agent_turn(messages: list[dict], boss_id: int | None = None) -> dict:
     """Runs the agent loop for one user turn.
 
     `messages` is the full conversation so far (list of {"role", "content"}),
-    NOT including the system prompt. Returns {"message": str, "proposal": dict | None} —
-    proposal is the last propose_reassignment() result this turn, if any, so the
-    frontend can render an Apply/Discard card without parsing prose.
+    NOT including the system prompt. `boss_id`, when given, injects a second
+    system message naming the boss currently on screen and its responsibility
+    names, so the raid leader doesn't have to spell out the boss every turn.
+    Returns {"message": str, "proposal": dict | None} — proposal is the last
+    propose_reassignment() result this turn, if any, so the frontend can
+    render an Apply/Discard card without parsing prose.
     """
     client = _get_client()
     model = _get_model()
-    conversation = [{"role": "system", "content": SYSTEM_PROMPT}, *messages]
+    conversation = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if boss_id is not None:
+        boss_message = _boss_context_message(boss_id)
+        if boss_message is not None:
+            conversation.append(boss_message)
+    conversation += messages
     pending_proposal = None
 
     for _ in range(_MAX_TOOL_ITERATIONS):
