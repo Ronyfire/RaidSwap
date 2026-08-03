@@ -8,7 +8,7 @@ request, so a failing test maps directly back to "what not to show".
 """
 
 from extensions import db
-from models import Assignment, Boss, Position, Raider, Responsibility
+from models import Boss, Position, Raider, Responsibility
 from seeds.curation import seed_curation
 from seeds.venomous_abyss import seed_venomous_abyss
 from services.agent_tools import apply_reassignment, propose_reassignment
@@ -24,8 +24,10 @@ def _active_count():
     return Raider.query.filter_by(status="active").count()
 
 
-def _apply(boss_name, responsibility_name, to_raider_name):
-    proposal = propose_reassignment(boss_name, responsibility_name, to_raider_name)
+def _apply(boss_name, responsibility_name, to_raider_name, from_raider_name=None):
+    proposal = propose_reassignment(
+        boss_name, responsibility_name, to_raider_name, from_raider_name
+    )
     assert "error" not in proposal, proposal
     return apply_reassignment(proposal)
 
@@ -64,34 +66,26 @@ def test_case_3_healer_to_healer_kaeli_to_cillian(app):
 
 
 def test_case_4_bench_dps_no_mechanic_profile_replaces_a_shared_responsibility(app):
-    """"Spirit adds" has TWO current assignees (Doran + Ilse) — the proposal/
-    apply contract only carries a responsibility + incoming raider name, no
-    "which of the two current assignees" field. apply_reassignment's lookup
-    (`Assignment.query.filter_by(responsibility_id=...).first()`) picks
-    whichever assignment row comes first with no ORDER BY — there is no
-    guarantee it's Ilse specifically. This test documents the actual
-    behavior rather than assuming the user's intended target is honored.
-    """
+    """"Spirit adds" has TWO current assignees (Doran + Ilse). Fixed by #75:
+    propose_reassignment requires from_raider_name to disambiguate which one
+    to replace — no more arbitrary "whichever Assignment comes first"."""
     seed_venomous_abyss()
     seed_curation()
     responsibility = Responsibility.query.filter_by(name="Spirit adds").first()
-    before_names = {a.raider.name for a in responsibility.assignments}
-    assert before_names == {"Doran", "Ilse"}
+    assert {a.raider.name for a in responsibility.assignments} == {"Doran", "Ilse"}
 
-    replaced_name = Assignment.query.filter_by(responsibility_id=responsibility.id).first().raider.name
+    result = _apply(
+        "Nek'zali the Soulcoiler", "Spirit adds", "Dagen", from_raider_name="Ilse"
+    )
 
-    result = _apply("Nek'zali the Soulcoiler", "Spirit adds", "Dagen")
-
-    after_names = {a.raider.name for a in Responsibility.query.filter_by(name="Spirit adds").first().assignments}
-    # Whichever of the two got replaced, Dagen is in and that one is out —
-    # but WHICH one is not something the caller controls today.
-    assert after_names == (before_names - {replaced_name}) | {"Dagen"}
+    after_names = {
+        a.raider.name for a in Responsibility.query.filter_by(name="Spirit adds").first().assignments
+    }
+    assert after_names == {"Doran", "Dagen"}
     assert Raider.query.filter_by(name="Dagen").first().status == "active"
+    assert Raider.query.filter_by(name="Ilse").first().status == "bench"
     assert _active_count() == 20
-    # The note_line only had ONE of the two tags actually swapped (the one
-    # matching the replaced assignment's prior raider name) — confirms the
-    # ambiguity is real, not just in the assignments table.
-    assert "tag:Dagen;" in result["responsibility"]["note_line"]
+    assert result["responsibility"]["note_line"] == "ph:1;tag:Doran;tag:Dagen;"
 
 
 # --- GUARDRAILS ---

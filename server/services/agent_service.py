@@ -38,6 +38,10 @@ the new raider has done this mechanic before), say so plainly and ask the \
 raid leader to confirm before they apply it — don't imply it's a safe bet.
 - If propose_reassignment returns an error, explain it in plain language \
 instead of retrying blindly.
+- If propose_reassignment's error includes current_assignees (a responsibility \
+with more than one raider currently on it), don't guess which one to replace — \
+list them and ask the raid leader which one, then call propose_reassignment \
+again with that name as from_raider_name.
 - Apply the MINIMAL necessary change: only touch the one responsibility being \
 discussed, never suggest recalculating the whole boss composition.
 - Be concise. This is a mid-raid tool, not a chat companion."""
@@ -72,7 +76,10 @@ _TOOL_SCHEMAS = [
             "name": "propose_reassignment",
             "description": (
                 "Prepare (but do not apply) reassigning a boss responsibility to a "
-                "different raider. Returns a proposal for the raid leader to confirm."
+                "different raider. Returns a proposal for the raid leader to confirm. "
+                "If the responsibility currently has more than one raider assigned, "
+                "this returns an error with current_assignees instead of guessing — "
+                "ask the raid leader which one, then call again with from_raider_name."
             ),
             "parameters": {
                 "type": "object",
@@ -80,6 +87,14 @@ _TOOL_SCHEMAS = [
                     "boss_name": {"type": "string"},
                     "responsibility_name": {"type": "string"},
                     "new_raider_name": {"type": "string"},
+                    "from_raider_name": {
+                        "type": "string",
+                        "description": (
+                            "Which currently-assigned raider to replace. Only required "
+                            "when the responsibility has more than one raider assigned; "
+                            "omit it otherwise."
+                        ),
+                    },
                 },
                 "required": ["boss_name", "responsibility_name", "new_raider_name"],
             },
@@ -92,8 +107,8 @@ _TOOL_FUNCTIONS = {
     "get_mechanic_profile": lambda raider_name, responsibility_name: agent_tools.get_mechanic_profile(
         raider_name, responsibility_name
     ),
-    "propose_reassignment": lambda boss_name, responsibility_name, new_raider_name: agent_tools.propose_reassignment(
-        boss_name, responsibility_name, new_raider_name
+    "propose_reassignment": lambda boss_name, responsibility_name, new_raider_name, from_raider_name=None: agent_tools.propose_reassignment(
+        boss_name, responsibility_name, new_raider_name, from_raider_name
     ),
 }
 
