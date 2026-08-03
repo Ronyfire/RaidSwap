@@ -80,7 +80,12 @@ def get_mechanic_profile(raider_name: str, responsibility_name: str) -> dict:
     }
 
 
-def propose_reassignment(boss_name: str, responsibility_name: str, new_raider_name: str) -> dict:
+def propose_reassignment(
+    boss_name: str,
+    responsibility_name: str,
+    new_raider_name: str,
+    from_raider_name: str | None = None,
+) -> dict:
     """Prepare a reassignment for review — does NOT write to the database.
 
     Returns either {"error": "..."} or a proposal dict the raid leader can
@@ -88,6 +93,13 @@ def propose_reassignment(boss_name: str, responsibility_name: str, new_raider_na
     raider has a "has_done_it"/"mastered" MechanicProfile for this
     responsibility, otherwise "unknown" — the caller should treat "unknown"
     as a prompt to ask the raid leader rather than proceed silently.
+
+    A responsibility can have more than one raider currently assigned (e.g.
+    "Spirit adds": Doran+Ilse). With one or zero current assignees,
+    from_raider_name isn't needed — it's inferred. With more than one,
+    from_raider_name is required; omitting it returns an ambiguity error
+    listing current_assignees instead of guessing which one to bump — same
+    "ask, don't assume" pattern as the confidence cascade.
     """
     boss = _find_boss(boss_name)
     if boss is None:
@@ -113,8 +125,28 @@ def propose_reassignment(boss_name: str, responsibility_name: str, new_raider_na
             )
         }
 
-    current_assignment = Assignment.query.filter_by(responsibility_id=responsibility.id).first()
-    from_raider_name = current_assignment.raider.name if current_assignment else None
+    current_assignments = Assignment.query.filter_by(responsibility_id=responsibility.id).all()
+
+    if from_raider_name:
+        from_assignment = next(
+            (a for a in current_assignments if a.raider.name.lower() == from_raider_name.lower()),
+            None,
+        )
+        if from_assignment is None:
+            return {
+                "error": f"{from_raider_name} isn't currently assigned to '{responsibility.name}'"
+            }
+        resolved_from_name = from_assignment.raider.name
+    elif len(current_assignments) > 1:
+        return {
+            "error": (
+                f"'{responsibility.name}' has more than one raider assigned — "
+                "specify which one to replace."
+            ),
+            "current_assignees": [a.raider.name for a in current_assignments],
+        }
+    else:
+        resolved_from_name = current_assignments[0].raider.name if current_assignments else None
 
     profile = MechanicProfile.query.filter_by(
         raider_id=new_raider.id, responsibility_id=responsibility.id
@@ -127,7 +159,7 @@ def propose_reassignment(boss_name: str, responsibility_name: str, new_raider_na
     return {
         "boss_name": boss.name,
         "responsibility_name": responsibility.name,
-        "from_raider_name": from_raider_name,
+        "from_raider_name": resolved_from_name,
         "to_raider_name": new_raider.name,
         "confidence": confidence,
     }
@@ -137,9 +169,14 @@ def apply_reassignment(proposal: dict) -> dict:
     """Commit a proposal produced by propose_reassignment().
 
     Re-resolves everything by name instead of trusting IDs from the client,
-    and re-reads the *current* assignment at apply time (not whatever the
+    and re-reads the *current* assignments at apply time (not whatever the
     proposal said earlier) so the note_line tag swap is always correct even
     if something else changed the assignment in between.
+
+    Re-validates the from_raider_name disambiguation independently of
+    propose_reassignment — a proposal built by hand (or from a stale
+    conversation) doesn't get to skip it: with more than one current
+    assignee and no from_raider_name, this raises rather than guessing.
     """
     responsibility = _find_responsibility(proposal.get("responsibility_name", ""))
     if responsibility is None:
@@ -155,7 +192,27 @@ def apply_reassignment(proposal: dict) -> dict:
             f"'{responsibility.name}' requires {responsibility.requires_role}"
         )
 
-    assignment = Assignment.query.filter_by(responsibility_id=responsibility.id).first()
+    current_assignments = Assignment.query.filter_by(responsibility_id=responsibility.id).all()
+    from_raider_name = proposal.get("from_raider_name")
+
+    if from_raider_name:
+        assignment = next(
+            (a for a in current_assignments if a.raider.name.lower() == from_raider_name.lower()),
+            None,
+        )
+        if assignment is None:
+            raise ValueError(
+                f"{from_raider_name} isn't currently assigned to '{responsibility.name}'"
+            )
+    elif len(current_assignments) > 1:
+        names = ", ".join(a.raider.name for a in current_assignments)
+        raise ValueError(
+            f"'{responsibility.name}' has more than one raider assigned ({names}) — "
+            "specify from_raider_name"
+        )
+    else:
+        assignment = current_assignments[0] if current_assignments else None
+
     old_raider = assignment.raider if assignment else None
 
     if assignment:

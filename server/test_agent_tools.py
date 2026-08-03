@@ -1,6 +1,6 @@
 import pytest
 
-from models import Raider
+from models import Raider, Responsibility
 from seeds.curation import seed_curation
 from seeds.venomous_abyss import seed_venomous_abyss
 from services.agent_tools import (
@@ -165,6 +165,69 @@ def test_propose_reassignment_role_incompatible(client):
     assert "error" in result
 
 
+def _make_multi_assignee_responsibility(client, boss_id, name="Spirit adds"):
+    resp = make_responsibility(client, name=name)
+    link_to_boss(client, boss_id, resp["id"])
+    a = make_raider(client, name="AssigneeA")
+    b = make_raider(client, name="AssigneeB")
+    client.post(
+        "/api/assignments", json={"raider_id": a["id"], "responsibility_id": resp["id"]}
+    )
+    client.post(
+        "/api/assignments", json={"raider_id": b["id"], "responsibility_id": resp["id"]}
+    )
+    return resp
+
+
+def test_propose_reassignment_multiple_assignees_without_from_raider_is_ambiguous(client):
+    boss = make_boss(client)
+    _make_multi_assignee_responsibility(client, boss["id"])
+    make_raider(client, name="New")
+
+    result = propose_reassignment(boss["name"], "Spirit adds", "New")
+
+    assert "error" in result
+    assert set(result["current_assignees"]) == {"AssigneeA", "AssigneeB"}
+
+
+def test_propose_reassignment_multiple_assignees_with_from_raider_resolves(client):
+    boss = make_boss(client)
+    _make_multi_assignee_responsibility(client, boss["id"])
+    make_raider(client, name="New")
+
+    result = propose_reassignment(boss["name"], "Spirit adds", "New", from_raider_name="AssigneeB")
+
+    assert "error" not in result
+    assert result["from_raider_name"] == "AssigneeB"
+    assert result["to_raider_name"] == "New"
+
+
+def test_propose_reassignment_from_raider_not_currently_assigned(client):
+    boss = make_boss(client)
+    _make_multi_assignee_responsibility(client, boss["id"])
+    make_raider(client, name="New")
+
+    result = propose_reassignment(boss["name"], "Spirit adds", "New", from_raider_name="Nobody")
+
+    assert "error" in result
+
+
+def test_propose_reassignment_single_assignee_from_raider_still_optional(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Interrupt")
+    link_to_boss(client, boss["id"], resp["id"])
+    old = make_raider(client, name="Old")
+    client.post(
+        "/api/assignments", json={"raider_id": old["id"], "responsibility_id": resp["id"]}
+    )
+    make_raider(client, name="New")
+
+    result = propose_reassignment(boss["name"], "Interrupt", "New")
+
+    assert "error" not in result
+    assert result["from_raider_name"] == "Old"
+
+
 def test_apply_reassignment_creates_new_assignment(client):
     boss = make_boss(client)
     resp = make_responsibility(client, name="Interrupt", note_line="tag:;")
@@ -265,6 +328,48 @@ def test_apply_reassignment_keeps_demo_roster_at_20_active(client):
     assert Raider.query.filter_by(status="active").count() == 20
     assert Raider.query.filter_by(name="Quill").first().status == "active"
     assert Raider.query.filter_by(name="Sylvi").first().status == "bench"
+
+
+def test_apply_reassignment_multiple_assignees_without_from_raider_raises(client):
+    boss = make_boss(client)
+    _make_multi_assignee_responsibility(client, boss["id"])
+    make_raider(client, name="New")
+
+    with pytest.raises(ValueError):
+        apply_reassignment({"responsibility_name": "Spirit adds", "to_raider_name": "New"})
+
+
+def test_apply_reassignment_multiple_assignees_with_from_raider_replaces_only_that_one(client):
+    boss = make_boss(client)
+    resp = _make_multi_assignee_responsibility(client, boss["id"])
+    make_raider(client, name="New")
+
+    apply_reassignment(
+        {
+            "responsibility_name": "Spirit adds",
+            "to_raider_name": "New",
+            "from_raider_name": "AssigneeB",
+        }
+    )
+
+    responsibility = Responsibility.query.filter_by(id=resp["id"]).first()
+    remaining = {a.raider.name for a in responsibility.assignments}
+    assert remaining == {"AssigneeA", "New"}
+
+
+def test_apply_reassignment_from_raider_not_assigned_raises(client):
+    boss = make_boss(client)
+    _make_multi_assignee_responsibility(client, boss["id"])
+    make_raider(client, name="New")
+
+    with pytest.raises(ValueError):
+        apply_reassignment(
+            {
+                "responsibility_name": "Spirit adds",
+                "to_raider_name": "New",
+                "from_raider_name": "Nobody",
+            }
+        )
 
 
 def test_apply_reassignment_role_incompatible_raises(client):
