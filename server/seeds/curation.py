@@ -38,51 +38,54 @@ RAIDERS = [
     ("Cillian", "Evoker", "Preservation", "Healer", "bench"),
 ]
 
-# boss_name -> [(responsibility_name, requires_role, note_line), ...]
+# boss_name -> [(responsibility_name, requires_role, note_line, type), ...]
+# type is a best-guess categorization (interrupt/cooldown/mechanic/assignment/
+# positioning, see projects/notes-model.md) — same "unconfirmed, refine later"
+# status as the rest of this PTR data, not a precise ruling.
 BOSS_RESPONSIBILITIES = {
     "Nek'zali the Soulcoiler": [
-        ("Interrupt Soulcoil Ritual", "DPS", "ph:1;tag:Sylvi;"),
-        ("Spirit adds", "DPS", "ph:1;tag:Doran;tag:Ilse;"),
-        ("Nek'zali tank swap", "Tank", "tag:Paco;"),
-        ("Venom pulse heal CD", "Healer", "ph:2;tag:Kaeli;"),
+        ("Interrupt Soulcoil Ritual", "DPS", "ph:1;tag:Sylvi;", "interrupt"),
+        ("Spirit adds", "DPS", "ph:1;tag:Doran;tag:Ilse;", "assignment"),
+        ("Nek'zali tank swap", "Tank", "tag:Paco;", "mechanic"),
+        ("Venom pulse heal CD", "Healer", "ph:2;tag:Kaeli;", "cooldown"),
     ],
     "Entombed Sentinels": [
-        ("Tank Blood of Ula'tek", "Tank", "tag:Paco;"),
-        ("Tank Breath of Ula'tek", "Tank", "tag:Orrin;"),
-        ("Dominance soak / dispel", "Healer", "tag:Grethak;"),
+        ("Tank Blood of Ula'tek", "Tank", "tag:Paco;", "assignment"),
+        ("Tank Breath of Ula'tek", "Tank", "tag:Orrin;", "assignment"),
+        ("Dominance soak / dispel", "Healer", "tag:Grethak;", "mechanic"),
     ],
     "Vashnik the Malignant": [
-        ("Venom dispels", "Healer", "tag:Kaeli;tag:Mistra;"),
-        ("Tank Vashnik (stacks)", "Tank", "tag:Orrin;"),
-        ("Soak poison pools", "DPS", "tag:Brannor;"),
+        ("Venom dispels", "Healer", "tag:Kaeli;tag:Mistra;", "mechanic"),
+        ("Tank Vashnik (stacks)", "Tank", "tag:Orrin;", "assignment"),
+        ("Soak poison pools", "DPS", "tag:Brannor;", "mechanic"),
     ],
     "The Lost Explorers": [
-        ("CC tortollan poseídos", "DPS", "tag:Sylvi;tag:Doran;"),
-        ("Kill order (prioridad)", "DPS", "tag:Ilse;tag:Vashti;"),
-        ("Tank líder poseído", "Tank", "tag:Paco;"),
+        ("CC tortollan poseídos", "DPS", "tag:Sylvi;tag:Doran;", "mechanic"),
+        ("Kill order (prioridad)", "DPS", "tag:Ilse;tag:Vashti;", "assignment"),
+        ("Tank líder poseído", "Tank", "tag:Paco;", "assignment"),
     ],
     "Sszorak": [
-        ("Encarar frontales (Mutilate/Ravage)", "Tank", "tag:Paco;"),
-        ("Corroding Venom tank swap", "Tank", "tag:Orrin;"),
-        ("Pop Viscous Cysts", "DPS", "tag:Doran;tag:Brannor;"),
-        ("Howling Maelstrom burn (Bloodlust)", "DPS", "ph:2;tag:Ilse;"),
+        ("Encarar frontales (Mutilate/Ravage)", "Tank", "tag:Paco;", "positioning"),
+        ("Corroding Venom tank swap", "Tank", "tag:Orrin;", "mechanic"),
+        ("Pop Viscous Cysts", "DPS", "tag:Doran;tag:Brannor;", "mechanic"),
+        ("Howling Maelstrom burn (Bloodlust)", "DPS", "ph:2;tag:Ilse;", "cooldown"),
     ],
     "The Twin Fangs": [
-        ("Tank Vexhul", "Tank", "tag:Paco;"),
-        ("Tank Ithraz", "Tank", "tag:Orrin;"),
-        ("Balance de daño (2 targets)", "DPS", "tag:Sylvi;tag:Vashti;"),
-        ("Feeding / add management", "DPS", "tag:Doran;"),
+        ("Tank Vexhul", "Tank", "tag:Paco;", "assignment"),
+        ("Tank Ithraz", "Tank", "tag:Orrin;", "assignment"),
+        ("Balance de daño (2 targets)", "DPS", "tag:Sylvi;tag:Vashti;", "assignment"),
+        ("Feeding / add management", "DPS", "tag:Doran;", "assignment"),
     ],
     "The Coiled Altar": [
-        ("Interrupt fase Zul'jan", "DPS", "ph:1;tag:Sylvi;"),
-        ("Handling de posesión", "Healer", "ph:2;tag:Kaeli;"),
-        ("Tank dual-boss finish", "Tank", "ph:3;tag:Paco;tag:Orrin;"),
+        ("Interrupt fase Zul'jan", "DPS", "ph:1;tag:Sylvi;", "interrupt"),
+        ("Handling de posesión", "Healer", "ph:2;tag:Kaeli;", "mechanic"),
+        ("Tank dual-boss finish", "Tank", "ph:3;tag:Paco;tag:Orrin;", "assignment"),
     ],
     "Ula'tek": [
-        ("Tank Ula'tek", "Tank", "tag:Paco;"),
-        ("Venom P1 (dispels/heal CD)", "Healer", "ph:1;tag:Grethak;"),
-        ("Add management P2", "DPS", "ph:2;tag:Doran;tag:Ilse;"),
-        ("Arena colapsante P3 (movimiento)", "DPS", "ph:3;tag:Vashti;"),
+        ("Tank Ula'tek", "Tank", "tag:Paco;", "assignment"),
+        ("Venom P1 (dispels/heal CD)", "Healer", "ph:1;tag:Grethak;", "cooldown"),
+        ("Add management P2", "DPS", "ph:2;tag:Doran;tag:Ilse;", "assignment"),
+        ("Arena colapsante P3 (movimiento)", "DPS", "ph:3;tag:Vashti;", "positioning"),
     ],
 }
 
@@ -99,19 +102,21 @@ def _upsert_raider(name, wow_class, spec, role, status):
     return raider
 
 
-def _upsert_responsibility(name, requires_role, note_line):
+def _upsert_responsibility(name, requires_role, note_line, type_):
     responsibility = Responsibility.query.filter_by(name=name).first()
     if responsibility is None:
         responsibility = Responsibility(
             name=name,
             requires_role=requires_role,
             note_line=note_line,
+            type=type_,
             confidence="unconfirmed",
         )
         db.session.add(responsibility)
     else:
         responsibility.requires_role = requires_role
         responsibility.note_line = note_line
+        responsibility.type = type_
         responsibility.confidence = "unconfirmed"
     return responsibility
 
@@ -162,8 +167,8 @@ def seed_curation():
             raise ValueError(
                 f"Boss '{boss_name}' not found — run `flask seed-venomous-abyss` first."
             )
-        for index, (resp_name, requires_role, note_line) in enumerate(responsibilities):
-            responsibility = _upsert_responsibility(resp_name, requires_role, note_line)
+        for index, (resp_name, requires_role, note_line, type_) in enumerate(responsibilities):
+            responsibility = _upsert_responsibility(resp_name, requires_role, note_line, type_)
             db.session.flush()
             _upsert_position(boss, responsibility, requires_role, index)
             db.session.flush()

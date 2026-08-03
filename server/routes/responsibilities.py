@@ -17,6 +17,7 @@ UPDATABLE_FIELDS = [
     "description",
     "confidence",
     "note_line",
+    "type",
 ]
 
 

@@ -44,85 +44,85 @@ banco**. El valor de RaidSwap es gestionar ese banco — meter suplentes por tit
 ### 1. Nek'zali the Soulcoiler
 Guarda el Soulcoil Well; invoca espíritus corruptos, gestión de adds + interrupts.
 
-| Responsibility | requires_role | note_line |
-|---|---|---|
-| Interrupt Soulcoil Ritual | DPS | `ph:1;tag:Sylvi;` |
-| Spirit adds | DPS | `ph:1;tag:Doran;tag:Ilse;` |
-| Nek'zali tank swap | Tank | `tag:Paco;` |
-| Venom pulse heal CD | Healer | `ph:2;tag:Kaeli;` |
+| Responsibility | requires_role | note_line | Type |
+|---|---|---|---|
+| Interrupt Soulcoil Ritual | DPS | `ph:1;tag:Sylvi;` | interrupt |
+| Spirit adds | DPS | `ph:1;tag:Doran;tag:Ilse;` | assignment |
+| Nek'zali tank swap | Tank | `tag:Paco;` | mechanic |
+| Venom pulse heal CD | Healer | `ph:2;tag:Kaeli;` | cooldown |
 
 ### 2. Entombed Sentinels
 Blood of Ula'tek + Breath of Ula'tek. Los tanks los mantienen SEPARADOS (juntarlos activa
 "Ula'tek's Dominance" → reducción de daño casi total).
 
-| Responsibility | requires_role | note_line |
-|---|---|---|
-| Tank Blood of Ula'tek | Tank | `tag:Paco;` |
-| Tank Breath of Ula'tek | Tank | `tag:Orrin;` |
-| Dominance soak / dispel | Healer | `tag:Grethak;` |
+| Responsibility | requires_role | note_line | Type |
+|---|---|---|---|
+| Tank Blood of Ula'tek | Tank | `tag:Paco;` | assignment |
+| Tank Breath of Ula'tek | Tank | `tag:Orrin;` | assignment |
+| Dominance soak / dispel | Healer | `tag:Grethak;` | mechanic |
 
 ### 3. Vashnik the Malignant
 Pelea de veneno: debuffs de veneno apilables + hazards de entorno.
 
-| Responsibility | requires_role | note_line |
-|---|---|---|
-| Venom dispels | Healer | `tag:Kaeli;tag:Mistra;` |
-| Tank Vashnik (stacks) | Tank | `tag:Orrin;` |
-| Soak poison pools | DPS | `tag:Brannor;` |
+| Responsibility | requires_role | note_line | Type |
+|---|---|---|---|
+| Venom dispels | Healer | `tag:Kaeli;tag:Mistra;` | mechanic |
+| Tank Vashnik (stacks) | Tank | `tag:Orrin;` | assignment |
+| Soak poison pools | DPS | `tag:Brannor;` | mechanic |
 
 ### 4. The Lost Explorers
 Trío de tortollan poseídos liderados por Mor'zahi. Encuentro de control de adds: CC +
 prioridad de objetivos (los poseídos tienen vulnerabilidades a CC).
 
-| Responsibility | requires_role | note_line |
-|---|---|---|
-| CC tortollan poseídos | DPS | `tag:Sylvi;tag:Doran;` |
-| Kill order (prioridad) | DPS | `tag:Ilse;tag:Vashti;` |
-| Tank líder poseído | Tank | `tag:Paco;` |
+| Responsibility | requires_role | note_line | Type |
+|---|---|---|---|
+| CC tortollan poseídos | DPS | `tag:Sylvi;tag:Doran;` | mechanic |
+| Kill order (prioridad) | DPS | `tag:Ilse;tag:Vashti;` | assignment |
+| Tank líder poseído | Tank | `tag:Paco;` | assignment |
 
 ### 5. Sszorak
 Movimiento pesado + "jumping puzzle". Frontales peligrosos (encarar lejos del raid para
 Mutilate/Ravage), stacks de Corroding Venom (armor reduction → tank swap), Viscous Cysts
 de Venomous Surge, y Howling Maelstrom = ventana de +30% daño (burn/Bloodlust).
 
-| Responsibility | requires_role | note_line |
-|---|---|---|
-| Encarar frontales (Mutilate/Ravage) | Tank | `tag:Paco;` |
-| Corroding Venom tank swap | Tank | `tag:Orrin;` |
-| Pop Viscous Cysts | DPS | `tag:Doran;tag:Brannor;` |
-| Howling Maelstrom burn (Bloodlust) | DPS | `ph:2;tag:Ilse;` |
+| Responsibility | requires_role | note_line | Type |
+|---|---|---|---|
+| Encarar frontales (Mutilate/Ravage) | Tank | `tag:Paco;` | positioning |
+| Corroding Venom tank swap | Tank | `tag:Orrin;` | mechanic |
+| Pop Viscous Cysts | DPS | `tag:Doran;tag:Brannor;` | mechanic |
+| Howling Maelstrom burn (Bloodlust) | DPS | `ph:2;tag:Ilse;` | cooldown |
 
 ### 6. The Twin Fangs (Vexhul & Ithraz)
 Dos jefes con mecánica de alimentación compartida que castiga el mal manejo de adds; daño
 en dos objetivos + gestión de veneno.
 
-| Responsibility | requires_role | note_line |
-|---|---|---|
-| Tank Vexhul | Tank | `tag:Paco;` |
-| Tank Ithraz | Tank | `tag:Orrin;` |
-| Balance de daño (2 targets) | DPS | `tag:Sylvi;tag:Vashti;` |
-| Feeding / add management | DPS | `tag:Doran;` |
+| Responsibility | requires_role | note_line | Type |
+|---|---|---|---|
+| Tank Vexhul | Tank | `tag:Paco;` | assignment |
+| Tank Ithraz | Tank | `tag:Orrin;` | assignment |
+| Balance de daño (2 targets) | DPS | `tag:Sylvi;tag:Vashti;` | assignment |
+| Feeding / add management | DPS | `tag:Doran;` | assignment |
 
 ### 7. The Coiled Altar
 Zul'jan poseído por Malacrass, forzado a terminar el ritual. Cambia de pelea de Zul'jan →
 encuentro de posesión → final con dos jefes.
 
-| Responsibility | requires_role | note_line |
-|---|---|---|
-| Interrupt fase Zul'jan | DPS | `ph:1;tag:Sylvi;` |
-| Handling de posesión | Healer | `ph:2;tag:Kaeli;` |
-| Tank dual-boss finish | Tank | `ph:3;tag:Paco;tag:Orrin;` |
+| Responsibility | requires_role | note_line | Type |
+|---|---|---|---|
+| Interrupt fase Zul'jan | DPS | `ph:1;tag:Sylvi;` | interrupt |
+| Handling de posesión | Healer | `ph:2;tag:Kaeli;` | mechanic |
+| Tank dual-boss finish | Tank | `ph:3;tag:Paco;tag:Orrin;` | assignment |
 
 ### 8. Ula'tek (final)
 Serpiente ancestral, 3 fases: mecánicas de veneno, gestión de adds, y arena que colapsa en
 la última fase.
 
-| Responsibility | requires_role | note_line |
-|---|---|---|
-| Tank Ula'tek | Tank | `tag:Paco;` |
-| Venom P1 (dispels/heal CD) | Healer | `ph:1;tag:Grethak;` |
-| Add management P2 | DPS | `ph:2;tag:Doran;tag:Ilse;` |
-| Arena colapsante P3 (movimiento) | DPS | `ph:3;tag:Vashti;` |
+| Responsibility | requires_role | note_line | Type |
+|---|---|---|---|
+| Tank Ula'tek | Tank | `tag:Paco;` | assignment |
+| Venom P1 (dispels/heal CD) | Healer | `ph:1;tag:Grethak;` | cooldown |
+| Add management P2 | DPS | `ph:2;tag:Doran;tag:Ilse;` | assignment |
+| Arena colapsante P3 (movimiento) | DPS | `ph:3;tag:Vashti;` | positioning |
 
 ## Notas y raidplans (para note_line real + positions)
 
@@ -135,6 +135,12 @@ la última fase.
 
 Tokens `clave:valor;`: `time:16;ph:1;bossSpell:1284931;tag:Nombre;spellid:471195;`
 El token `tag:Nombre;` es el raider asignado — lo que el agente intercambia al reasignar.
+
+## Type (#70)
+
+Eje "Contenido" de Viserio (ver notes-model.md): `interrupt` / `cooldown` / `mechanic` /
+`assignment` / `positioning`. Categorización propia sobre la data de PTR — mismo estado
+`unconfirmed` que el resto, se refina en la ventana 4-18 ago junto con todo lo demás.
 
 ## Pendiente para la ventana 4–18 ago
 
