@@ -1,5 +1,8 @@
 import pytest
 
+from models import Raider
+from seeds.curation import seed_curation
+from seeds.venomous_abyss import seed_venomous_abyss
 from services.agent_tools import (
     apply_reassignment,
     get_boss_context,
@@ -208,7 +211,7 @@ def test_apply_reassignment_flips_incoming_bench_raider_to_active(client):
     assert client.get(f"/api/raiders/{bench_raider['id']}").get_json()["status"] == "active"
 
 
-def test_apply_reassignment_leaves_outgoing_raider_status_alone(client):
+def test_apply_reassignment_flips_outgoing_raider_to_bench(client):
     boss = make_boss(client)
     resp = make_responsibility(client, name="Interrupt", note_line="tag:Old;")
     link_to_boss(client, boss["id"], resp["id"])
@@ -221,7 +224,47 @@ def test_apply_reassignment_leaves_outgoing_raider_status_alone(client):
     proposal = propose_reassignment(boss["name"], "Interrupt", "New")
     apply_reassignment(proposal)
 
-    assert client.get(f"/api/raiders/{old_raider['id']}").get_json()["status"] == "active"
+    assert client.get(f"/api/raiders/{old_raider['id']}").get_json()["status"] == "bench"
+
+
+def test_apply_reassignment_keeps_active_count_stable_for_a_swap(client):
+    # A 1-for-1 swap (bench raider in, active raider out) must not change the
+    # active headcount — Mythic's invariant is exactly 20.
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Interrupt", note_line="tag:Old;")
+    link_to_boss(client, boss["id"], resp["id"])
+    old_raider = make_raider(client, name="Old", status="active")
+    bench_raider = make_raider(client, name="Bench", status="bench")
+    client.post(
+        "/api/assignments", json={"raider_id": old_raider["id"], "responsibility_id": resp["id"]}
+    )
+    active_before = len(
+        [r for r in client.get("/api/raiders").get_json() if r["status"] == "active"]
+    )
+
+    proposal = propose_reassignment(boss["name"], "Interrupt", "Bench")
+    apply_reassignment(proposal)
+
+    raiders = client.get("/api/raiders").get_json()
+    active_after = len([r for r in raiders if r["status"] == "active"])
+    assert active_after == active_before
+    assert next(r for r in raiders if r["name"] == "Bench")["status"] == "active"
+    assert next(r for r in raiders if r["name"] == "Old")["status"] == "bench"
+
+
+def test_apply_reassignment_keeps_demo_roster_at_20_active(client):
+    seed_venomous_abyss()
+    seed_curation()
+    assert Raider.query.filter_by(status="active").count() == 20
+
+    proposal = propose_reassignment(
+        "Nek'zali the Soulcoiler", "Interrupt Soulcoil Ritual", "Quill"
+    )
+    apply_reassignment(proposal)
+
+    assert Raider.query.filter_by(status="active").count() == 20
+    assert Raider.query.filter_by(name="Quill").first().status == "active"
+    assert Raider.query.filter_by(name="Sylvi").first().status == "bench"
 
 
 def test_apply_reassignment_role_incompatible_raises(client):
