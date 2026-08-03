@@ -156,7 +156,7 @@ def apply_reassignment(proposal: dict) -> dict:
         )
 
     assignment = Assignment.query.filter_by(responsibility_id=responsibility.id).first()
-    old_raider_name = assignment.raider.name if assignment else None
+    old_raider = assignment.raider if assignment else None
 
     if assignment:
         assignment.raider_id = new_raider.id
@@ -164,16 +164,21 @@ def apply_reassignment(proposal: dict) -> dict:
         assignment = Assignment(raider_id=new_raider.id, responsibility_id=responsibility.id)
         db.session.add(assignment)
 
-    # The raider coming IN visibly enters the raid — flip bench to active.
-    # The raider going OUT is left alone: they may hold other responsibilities
-    # on other bosses, so bulk-benching them is a separate follow-up, not
-    # something a single-boss reassignment should decide.
+    # Mythic invariant: exactly 20 active. A swap is 1-for-1 — the raider
+    # coming IN flips to active, the raider going OUT flips to bench, so the
+    # active count never drifts.
+    # Known gap, not handled here: if the outgoing raider holds assignments
+    # on OTHER bosses, those are left pointing at a now-benched raider
+    # (orphaned, not reassigned/flagged). Doesn't show in a single-boss demo;
+    # handling it is a separate follow-up, not something this swap decides.
     if new_raider.status == "bench":
         new_raider.status = "active"
+    if old_raider is not None and old_raider.id != new_raider.id:
+        old_raider.status = "bench"
 
-    if responsibility.note_line and old_raider_name:
+    if responsibility.note_line and old_raider is not None:
         responsibility.note_line = replace_tag_in_note_line(
-            responsibility.note_line, old_raider_name, new_raider.name
+            responsibility.note_line, old_raider.name, new_raider.name
         )
 
     db.session.commit()
