@@ -164,6 +164,13 @@ def apply_reassignment(proposal: dict) -> dict:
         assignment = Assignment(raider_id=new_raider.id, responsibility_id=responsibility.id)
         db.session.add(assignment)
 
+    # The raider coming IN visibly enters the raid — flip bench to active.
+    # The raider going OUT is left alone: they may hold other responsibilities
+    # on other bosses, so bulk-benching them is a separate follow-up, not
+    # something a single-boss reassignment should decide.
+    if new_raider.status == "bench":
+        new_raider.status = "active"
+
     if responsibility.note_line and old_raider_name:
         responsibility.note_line = replace_tag_in_note_line(
             responsibility.note_line, old_raider_name, new_raider.name

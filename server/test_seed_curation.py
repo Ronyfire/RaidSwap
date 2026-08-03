@@ -17,6 +17,20 @@ def test_seed_creates_all_raiders(app):
     assert Raider.query.count() == len(RAIDERS)
 
 
+def test_seed_sets_raider_status(app):
+    seed_venomous_abyss()
+    seed_curation()
+
+    active_count = Raider.query.filter_by(status="active").count()
+    bench_count = Raider.query.filter_by(status="bench").count()
+    assert active_count == 20
+    assert bench_count == 4
+
+    quill = Raider.query.filter_by(name="Quill").first()
+    assert quill.status == "bench"
+    assert quill.role == "DPS"
+
+
 def test_seed_creates_responsibilities_and_positions(app):
     seed_venomous_abyss()
     seed_curation()

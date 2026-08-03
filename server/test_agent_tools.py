@@ -192,6 +192,38 @@ def test_apply_reassignment_updates_existing_and_swaps_note_tag(client):
     assert result["responsibility"]["note_line"] == "time:0;tag:New;"
 
 
+def test_apply_reassignment_flips_incoming_bench_raider_to_active(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Interrupt", note_line="tag:Old;")
+    link_to_boss(client, boss["id"], resp["id"])
+    old_raider = make_raider(client, name="Old")
+    bench_raider = make_raider(client, name="Bench", status="bench")
+    client.post(
+        "/api/assignments", json={"raider_id": old_raider["id"], "responsibility_id": resp["id"]}
+    )
+
+    proposal = propose_reassignment(boss["name"], "Interrupt", "Bench")
+    apply_reassignment(proposal)
+
+    assert client.get(f"/api/raiders/{bench_raider['id']}").get_json()["status"] == "active"
+
+
+def test_apply_reassignment_leaves_outgoing_raider_status_alone(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Interrupt", note_line="tag:Old;")
+    link_to_boss(client, boss["id"], resp["id"])
+    old_raider = make_raider(client, name="Old")
+    new_raider = make_raider(client, name="New")
+    client.post(
+        "/api/assignments", json={"raider_id": old_raider["id"], "responsibility_id": resp["id"]}
+    )
+
+    proposal = propose_reassignment(boss["name"], "Interrupt", "New")
+    apply_reassignment(proposal)
+
+    assert client.get(f"/api/raiders/{old_raider['id']}").get_json()["status"] == "active"
+
+
 def test_apply_reassignment_role_incompatible_raises(client):
     boss = make_boss(client)
     resp = make_responsibility(client, name="Taunt swap", requires_role="Tank")

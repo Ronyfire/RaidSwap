@@ -49,3 +49,21 @@ def test_delete_raider(client):
 def test_get_raider_not_found(client):
     resp = client.get("/api/raiders/999")
     assert resp.status_code == 404
+
+
+def test_create_raider_defaults_to_active_status(client):
+    resp = make_raider(client)
+    assert resp.get_json()["status"] == "active"
+
+
+def test_create_raider_with_bench_status(client):
+    resp = make_raider(client, status="bench")
+    assert resp.get_json()["status"] == "bench"
+
+
+def test_update_raider_status(client):
+    raider_id = make_raider(client).get_json()["id"]
+
+    resp = client.put(f"/api/raiders/{raider_id}", json={"status": "bench"})
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "bench"

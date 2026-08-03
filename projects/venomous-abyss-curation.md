@@ -6,20 +6,38 @@ de las mecánicas de PTR** (roles tentativos, `note_line` placeholder) — se co
 refinan con notas reales (Viserio / MRT / raidplan.io) en la ventana **4–18 ago**.
 Se espera que los cambios PTR→live sean mínimos o nulos.
 
-## Roster de arranque (clases retail reales)
+## Roster (24 — el premise del producto)
 
-| Raider | Clase | Spec | Rol |
-|---|---|---|---|
-| Paco | Warrior | Protection | Tank |
-| Orrin | Death Knight | Blood | Tank |
-| Kaeli | Priest | Holy | Healer |
-| Grethak | Shaman | Restoration | Healer |
-| Mistra | Monk | Mistweaver | Healer |
-| Sylvi | Mage | Frost | DPS |
-| Doran | Rogue | Assassination | DPS |
-| Ilse | Hunter | Beast Mastery | DPS |
-| Brannor | Paladin | Retribution | DPS |
-| Vashti | Warlock | Destruction | DPS |
+Mítico entra **20 fijos**, pero el roster tiene más (acá 24): **20 activos + 4 en el
+banco**. El valor de RaidSwap es gestionar ese banco — meter suplentes por titulares.
+`status`: active / bench.
+
+| Raider | Clase | Spec | Rol | Status |
+|---|---|---|---|---|
+| Paco | Warrior | Protection | Tank | active |
+| Orrin | Death Knight | Blood | Tank | active |
+| Kaeli | Priest | Holy | Healer | active |
+| Grethak | Shaman | Restoration | Healer | active |
+| Mistra | Monk | Mistweaver | Healer | active |
+| Aldric | Paladin | Holy | Healer | active |
+| Sylvi | Mage | Frost | DPS | active |
+| Doran | Rogue | Assassination | DPS | active |
+| Ilse | Hunter | Beast Mastery | DPS | active |
+| Brannor | Paladin | Retribution | DPS | active |
+| Vashti | Warlock | Destruction | DPS | active |
+| Fenn | Warrior | Fury | DPS | active |
+| Nyx | Rogue | Subtlety | DPS | active |
+| Torvald | Death Knight | Frost | DPS | active |
+| Elowen | Druid | Balance | DPS | active |
+| Kaelen | Mage | Fire | DPS | active |
+| Rurik | Shaman | Elemental | DPS | active |
+| Sabine | Priest | Shadow | DPS | active |
+| Garrik | Hunter | Marksmanship | DPS | active |
+| Lyra | Warlock | Affliction | DPS | active |
+| Quill | Rogue | Outlaw | DPS | bench |
+| Dagen | Demon Hunter | Havoc | DPS | bench |
+| Maren | Paladin | Protection | Tank | bench |
+| Cillian | Evoker | Preservation | Healer | bench |
 
 ## Bosses (orden — verificar #3/#4 al release; Ula'tek confirmado final)
 
