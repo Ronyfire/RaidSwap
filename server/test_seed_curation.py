@@ -43,6 +43,16 @@ def test_seed_creates_responsibilities_and_positions(app):
     assert interrupt.requires_role == "DPS"
     assert interrupt.note_line == "ph:1;tag:Sylvi;"
     assert interrupt.confidence == "unconfirmed"
+    assert interrupt.type == "interrupt"
+
+
+def test_seed_sets_responsibility_type_for_every_responsibility(app):
+    seed_venomous_abyss()
+    seed_curation()
+
+    types = {r.type for r in Responsibility.query.all()}
+    assert None not in types
+    assert types <= {"interrupt", "cooldown", "mechanic", "assignment", "positioning"}
 
 
 def test_seed_creates_assignments_from_note_line_tags(app):

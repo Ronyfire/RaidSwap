@@ -57,6 +57,25 @@ def test_update_note_line(client):
     assert resp.get_json()["note_line"] == "tag:Sam;"
 
 
+def test_create_responsibility_with_type(client):
+    resp = make_responsibility(client, type="interrupt")
+    assert resp.status_code == 201
+    assert resp.get_json()["type"] == "interrupt"
+
+
+def test_create_responsibility_type_defaults_to_none(client):
+    resp = make_responsibility(client)
+    assert resp.get_json()["type"] is None
+
+
+def test_update_type(client):
+    resp_id = make_responsibility(client).get_json()["id"]
+
+    resp = client.put(f"/api/responsibilities/{resp_id}", json={"type": "cooldown"})
+    assert resp.status_code == 200
+    assert resp.get_json()["type"] == "cooldown"
+
+
 def test_delete_responsibility(client):
     resp_id = make_responsibility(client).get_json()["id"]
 
