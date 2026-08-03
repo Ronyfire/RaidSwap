@@ -1,13 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getBoss, getBossNote, type Boss } from "../api/bosses";
-import { getPositions } from "../api/positions";
+import { getPositions, type Position } from "../api/positions";
 import { getResponsibilities, type Responsibility } from "../api/responsibilities";
 import { getAssignments, type Assignment } from "../api/assignments";
 import { getRaiders, type Raider } from "../api/raiders";
 import { useRaidContext } from "../context/useRaidContext";
 import { classColor } from "../lib/wowClasses";
 import { AgentChat } from "../components/agent/AgentChat";
+import { RaidPlanOverlay } from "../components/raidplan/RaidPlanOverlay";
 
 const ICON_COLORS = [
   classColor("Warrior"),
@@ -45,7 +46,7 @@ function parseNoteLine(noteLine: string): ReactNode[] {
   return parts;
 }
 
-type Tab = "assignments" | "notes";
+type Tab = "assignments" | "notes" | "raidplan";
 
 export function BossDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -54,6 +55,7 @@ export function BossDetailPage() {
 
   const [tab, setTab] = useState<Tab>("notes");
   const [boss, setBoss] = useState<Boss | null>(null);
+  const [positions, setPositions] = useState<Position[]>([]);
   const [responsibilities, setResponsibilities] = useState<Responsibility[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [raiders, setRaiders] = useState<Raider[]>([]);
@@ -86,6 +88,7 @@ export function BossDetailPage() {
 
         setBoss(bossData);
         setSelectedBoss(bossData);
+        setPositions(positionsData);
         setResponsibilities(bossResponsibilities);
         setAssignments(assignmentsData);
         setRaiders(raidersData);
@@ -138,6 +141,9 @@ export function BossDetailPage() {
         <button className={tabClass(tab === "notes")} onClick={() => setTab("notes")}>
           Notes
         </button>
+        <button className={tabClass(tab === "raidplan")} onClick={() => setTab("raidplan")}>
+          Raid Plan
+        </button>
       </div>
 
       <div className="p-8 pt-0">
@@ -145,6 +151,16 @@ export function BossDetailPage() {
           <div className="mt-6 max-w-[420px]">
             <AgentChat onApplied={() => setRefreshKey((k) => k + 1)} bossId={bossId} />
           </div>
+        )}
+
+        {tab === "raidplan" && (
+          <RaidPlanOverlay
+            bossName={boss.name}
+            positions={positions}
+            responsibilities={responsibilities}
+            assignments={assignments}
+            raiders={raiders}
+          />
         )}
 
         {tab === "notes" && note && (
