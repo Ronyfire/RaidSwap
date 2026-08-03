@@ -13,7 +13,7 @@ reply can ask the raid leader to confirm instead of assuming.
 
 from extensions import db
 from models import Assignment, Boss, MechanicProfile, Position, Raider, Responsibility
-from services.note_service import replace_tag_in_note_line
+from services.note_service import replace_raider_name_in_note_line
 
 
 def _find_raider(name: str) -> Raider | None:
@@ -177,7 +177,7 @@ def apply_reassignment(proposal: dict) -> dict:
         old_raider.status = "bench"
 
     if responsibility.note_line and old_raider is not None:
-        responsibility.note_line = replace_tag_in_note_line(
+        responsibility.note_line = replace_raider_name_in_note_line(
             responsibility.note_line, old_raider.name, new_raider.name
         )
 

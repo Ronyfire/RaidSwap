@@ -69,7 +69,7 @@ def test_get_boss_note_assembles_responsibility_lines(client):
 
     resp = client.get(f"/api/bosses/{boss_id}/note")
     assert resp.status_code == 200
-    assert resp.get_json()["note"] == "Interrupt: ph:1;tag:Sylvi;"
+    assert resp.get_json()["note"] == "Sylvi - Interrupt"
 
 
 def test_get_boss_note_empty_when_no_responsibilities(client):

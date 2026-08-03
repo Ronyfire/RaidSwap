@@ -187,23 +187,20 @@ def test_case_11_export_reflects_a_swap(app):
     boss_id = Boss.query.filter_by(name="Nek'zali the Soulcoiler").first().id
 
     before = assemble_boss_note(boss_id)
-    assert "tag:Sylvi;" in before
+    assert "Sylvi - Interrupt Soulcoil Ritual" in before
 
     _apply("Nek'zali the Soulcoiler", "Interrupt Soulcoil Ritual", "Quill")
 
     after = assemble_boss_note(boss_id)
-    assert "tag:Quill;" in after
-    assert "tag:Sylvi;" not in after
+    assert "Quill - Interrupt Soulcoil Ritual" in after
+    assert "Sylvi - Interrupt Soulcoil Ritual" not in after
 
 
 def test_case_12_export_of_unassigned_responsibility(app):
-    """Documents actual behavior against the stated expectation ("shows
-    'Unassigned' cleanly"): assemble_boss_note has no such branch — it only
-    joins whatever note_line text exists (or skips the line entirely if
-    note_line is empty/None). "Unassigned" is currently a FRONTEND-only
-    label (BossDetailPage's per-responsibility card), not something the
-    export endpoint/service produces.
-    """
+    """Fixed by #76 (real MRT/NSRT syntax export, see note_service.py):
+    every responsibility now produces at least one line, and one with no
+    tagged raider (or an empty tag:;) shows "Unassigned" instead of being
+    silently dropped or showing raw internal-token text."""
     boss = Boss(name="Empty Test Boss", raid="Test Raid", order=99)
     db.session.add(boss)
     db.session.flush()
@@ -220,12 +217,7 @@ def test_case_12_export_of_unassigned_responsibility(app):
 
     note = assemble_boss_note(boss.id)
 
-    # Actual behavior: the no-note responsibility is silently omitted, and
-    # the has-note-but-unassigned one shows its raw (empty-tag) note_line —
-    # neither says "Unassigned" anywhere.
-    assert "No note set" not in note
-    assert "Has note, nobody assigned: tag:;" in note
-    assert "Unassigned" not in note
+    assert note == "Unassigned - No note set\nUnassigned - Has note, nobody assigned"
 
 
 # --- RATE LIMITING ---
