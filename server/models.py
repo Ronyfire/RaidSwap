@@ -27,6 +27,10 @@ class Raider(db.Model):
     wow_class = db.Column(db.String(40), nullable=False)
     spec = db.Column(db.String(40), nullable=False)
     role = db.Column(db.String(20), nullable=False)
+    # "active" / "bench" — Mythic takes 20, the roster carries more (see
+    # projects/venomous-abyss-curation.md). apply_reassignment flips a
+    # bench raider to active when they get swapped in.
+    status = db.Column(db.String(20), nullable=False, default="active")
 
     mechanic_profiles = db.relationship("MechanicProfile", back_populates="raider")
     assignments = db.relationship("Assignment", back_populates="raider")
@@ -38,6 +42,7 @@ class Raider(db.Model):
             "wow_class": self.wow_class,
             "spec": self.spec,
             "role": self.role,
+            "status": self.status,
         }
 
 

@@ -77,7 +77,28 @@ export function RaidersPage() {
         </p>
       )}
 
-      <RaiderList raiders={raiders} onEdit={setEditing} onRemove={setRemoving} />
+      <div className="flex flex-col gap-6">
+        <div>
+          <h2 className="font-heading text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-2.5">
+            Active ({raiders.filter((r) => r.status === "active").length})
+          </h2>
+          <RaiderList
+            raiders={raiders.filter((r) => r.status === "active")}
+            onEdit={setEditing}
+            onRemove={setRemoving}
+          />
+        </div>
+        <div>
+          <h2 className="font-heading text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-2.5">
+            Bench ({raiders.filter((r) => r.status === "bench").length})
+          </h2>
+          <RaiderList
+            raiders={raiders.filter((r) => r.status === "bench")}
+            onEdit={setEditing}
+            onRemove={setRemoving}
+          />
+        </div>
+      </div>
 
       {editing && (
         <Modal onClose={() => setEditing(null)}>

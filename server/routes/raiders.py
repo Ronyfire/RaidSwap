@@ -6,6 +6,7 @@ from models import Raider
 raiders_bp = Blueprint("raiders", __name__, url_prefix="/api/raiders")
 
 REQUIRED_FIELDS = ["name", "wow_class", "spec", "role"]
+UPDATABLE_FIELDS = REQUIRED_FIELDS + ["status"]
 
 
 @raiders_bp.get("")
@@ -28,7 +29,7 @@ def create_raider():
     if missing:
         return jsonify(error=f"Missing fields: {', '.join(missing)}"), 400
 
-    raider = Raider(**{f: data[f] for f in REQUIRED_FIELDS})
+    raider = Raider(**{f: data[f] for f in UPDATABLE_FIELDS if f in data})
     db.session.add(raider)
     db.session.commit()
     return jsonify(raider.to_dict()), 201
@@ -41,7 +42,7 @@ def update_raider(raider_id):
         return jsonify(error="Raider not found"), 404
 
     data = request.get_json(silent=True) or {}
-    for field in REQUIRED_FIELDS:
+    for field in UPDATABLE_FIELDS:
         if field in data:
             setattr(raider, field, data[field])
     db.session.commit()

@@ -21,6 +21,7 @@ export function RaiderForm({ initial, onSubmit, onCancel }: RaiderFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [wowClass, setWowClass] = useState(initial?.wow_class ?? CLASS_LIST[0]);
   const [spec, setSpec] = useState(() => initialSpec(wowClass, initial?.spec));
+  const [status, setStatus] = useState<"active" | "bench">(initial?.status ?? "active");
 
   const specs = CLASS_SPECS[wowClass];
   const role = specs.find((s) => s.spec === spec)?.role ?? specs[0].role;
@@ -32,7 +33,7 @@ export function RaiderForm({ initial, onSubmit, onCancel }: RaiderFormProps) {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    onSubmit({ name, wow_class: wowClass, spec, role });
+    onSubmit({ name, wow_class: wowClass, spec, role, status });
   }
 
   return (
@@ -69,6 +70,16 @@ export function RaiderForm({ initial, onSubmit, onCancel }: RaiderFormProps) {
       <div className="w-full px-2.5 py-2 mb-3.5 bg-surface border border-border rounded text-text-muted text-[13.5px]">
         {role}
       </div>
+
+      <label className={labelClass}>Status</label>
+      <select
+        className={inputClass}
+        value={status}
+        onChange={(e) => setStatus(e.target.value as "active" | "bench")}
+      >
+        <option value="active">Active</option>
+        <option value="bench">Bench</option>
+      </select>
 
       <div className="flex justify-end gap-2">
         <button

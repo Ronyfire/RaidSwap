@@ -6,6 +6,7 @@ export interface Raider {
   wow_class: string;
   spec: string;
   role: string;
+  status: "active" | "bench";
 }
 
 export type RaiderInput = Omit<Raider, "id">;

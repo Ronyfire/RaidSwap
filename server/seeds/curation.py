@@ -8,17 +8,34 @@ from models import Assignment, Boss, Position, Raider, Responsibility
 # Boss names below match seeds/venomous_abyss.py exactly (the curation doc's
 # headers have extra detail, e.g. "The Twin Fangs (Vexhul & Ithraz)").
 
+# Mythic takes 20 fixed raiders; the roster carries 24 (20 active + 4 bench)
+# — that gap is the product's premise, RaidSwap manages swapping bench in
+# for active. See projects/venomous-abyss-curation.md.
 RAIDERS = [
-    ("Paco", "Warrior", "Protection", "Tank"),
-    ("Orrin", "Death Knight", "Blood", "Tank"),
-    ("Kaeli", "Priest", "Holy", "Healer"),
-    ("Grethak", "Shaman", "Restoration", "Healer"),
-    ("Mistra", "Monk", "Mistweaver", "Healer"),
-    ("Sylvi", "Mage", "Frost", "DPS"),
-    ("Doran", "Rogue", "Assassination", "DPS"),
-    ("Ilse", "Hunter", "Beast Mastery", "DPS"),
-    ("Brannor", "Paladin", "Retribution", "DPS"),
-    ("Vashti", "Warlock", "Destruction", "DPS"),
+    ("Paco", "Warrior", "Protection", "Tank", "active"),
+    ("Orrin", "Death Knight", "Blood", "Tank", "active"),
+    ("Kaeli", "Priest", "Holy", "Healer", "active"),
+    ("Grethak", "Shaman", "Restoration", "Healer", "active"),
+    ("Mistra", "Monk", "Mistweaver", "Healer", "active"),
+    ("Aldric", "Paladin", "Holy", "Healer", "active"),
+    ("Sylvi", "Mage", "Frost", "DPS", "active"),
+    ("Doran", "Rogue", "Assassination", "DPS", "active"),
+    ("Ilse", "Hunter", "Beast Mastery", "DPS", "active"),
+    ("Brannor", "Paladin", "Retribution", "DPS", "active"),
+    ("Vashti", "Warlock", "Destruction", "DPS", "active"),
+    ("Fenn", "Warrior", "Fury", "DPS", "active"),
+    ("Nyx", "Rogue", "Subtlety", "DPS", "active"),
+    ("Torvald", "Death Knight", "Frost", "DPS", "active"),
+    ("Elowen", "Druid", "Balance", "DPS", "active"),
+    ("Kaelen", "Mage", "Fire", "DPS", "active"),
+    ("Rurik", "Shaman", "Elemental", "DPS", "active"),
+    ("Sabine", "Priest", "Shadow", "DPS", "active"),
+    ("Garrik", "Hunter", "Marksmanship", "DPS", "active"),
+    ("Lyra", "Warlock", "Affliction", "DPS", "active"),
+    ("Quill", "Rogue", "Outlaw", "DPS", "bench"),
+    ("Dagen", "Demon Hunter", "Havoc", "DPS", "bench"),
+    ("Maren", "Paladin", "Protection", "Tank", "bench"),
+    ("Cillian", "Evoker", "Preservation", "Healer", "bench"),
 ]
 
 # boss_name -> [(responsibility_name, requires_role, note_line), ...]
@@ -72,13 +89,13 @@ BOSS_RESPONSIBILITIES = {
 TAG_PATTERN = re.compile(r"tag:([^;]+);")
 
 
-def _upsert_raider(name, wow_class, spec, role):
+def _upsert_raider(name, wow_class, spec, role, status):
     raider = Raider.query.filter_by(name=name).first()
     if raider is None:
-        raider = Raider(name=name, wow_class=wow_class, spec=spec, role=role)
+        raider = Raider(name=name, wow_class=wow_class, spec=spec, role=role, status=status)
         db.session.add(raider)
     else:
-        raider.wow_class, raider.spec, raider.role = wow_class, spec, role
+        raider.wow_class, raider.spec, raider.role, raider.status = wow_class, spec, role, status
     return raider
 
 
@@ -135,8 +152,8 @@ def _sync_assignments(responsibility, note_line):
 
 
 def seed_curation():
-    for name, wow_class, spec, role in RAIDERS:
-        _upsert_raider(name, wow_class, spec, role)
+    for name, wow_class, spec, role, status in RAIDERS:
+        _upsert_raider(name, wow_class, spec, role, status)
     db.session.flush()
 
     for boss_name, responsibilities in BOSS_RESPONSIBILITIES.items():
