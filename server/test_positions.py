@@ -97,6 +97,15 @@ def test_update_position(client):
     assert resp.get_json()["requires_role"] == "tank"
 
 
+def test_update_position_requires_range(client):
+    boss_id = make_boss(client)
+    position_id = make_position(client, boss_id).get_json()["id"]
+
+    resp = client.put(f"/api/positions/{position_id}", json={"requires_range": "melee"})
+    assert resp.status_code == 200
+    assert resp.get_json()["requires_range"] == "melee"
+
+
 def test_update_position_boss_not_found(client):
     boss_id = make_boss(client)
     position_id = make_position(client, boss_id).get_json()["id"]

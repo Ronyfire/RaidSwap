@@ -6,6 +6,7 @@ export interface Position {
   y: number;
   boss_id: number;
   requires_role: string | null;
+  requires_range: string | null;
   responsibility_id: number | null;
 }
 

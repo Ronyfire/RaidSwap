@@ -81,7 +81,10 @@ como se sospechaba antes).
 
 ## Sprint 4 — Refinamiento y limpieza
 
-- [ ] Reglas espaciales melee/ranged en Position al reasignar (#18)
+- [x] Reglas espaciales melee/ranged en Position al reasignar (#18): campo
+  `Position.requires_range` (nullable, sin backfill — es curación real de
+  Robert, no algo a inferir), guardrail en propose/apply_reassignment
+  espejando el de rol, clasificación melee/ranged derivada de spec.
 - [x] Refactor y limpieza de lo construido en S2-S3 (#21): audit del repo —
   sin archivos innecesarios ni código muerto, se corrigió deriva del modelo
   default del agente (`.env` real vs. `_DEFAULT_MODEL`/`.env.example`) y se
