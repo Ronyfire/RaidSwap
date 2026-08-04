@@ -5,6 +5,7 @@ import type { Assignment } from "../../api/assignments";
 import type { Raider } from "../../api/raiders";
 import { roleColor } from "../../lib/wowClasses";
 import { RAIDPLAN_IMAGES } from "../../lib/raidplanImages";
+import { drawRaidPlanImage, downloadCanvasAsPng } from "../../lib/raidplanExport";
 
 interface RaidPlanOverlayProps {
   bossName: string;
@@ -33,6 +34,7 @@ export function RaidPlanOverlay({
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   if (!images) {
     return (
@@ -91,6 +93,31 @@ export function RaidPlanOverlay({
     onPositionMoved();
   }
 
+  function handleExport() {
+    const image = imgRef.current;
+    if (!image) return;
+
+    const tokens = visiblePositions
+      .map((position) => {
+        const responsibility = responsibilityById.get(position.responsibility_id!);
+        if (!responsibility) return null;
+        return {
+          x: position.x,
+          y: position.y,
+          label: raiderNamesFor(responsibility.id),
+          color: roleColor(position.requires_role ?? responsibility.requires_role ?? ""),
+        };
+      })
+      .filter((t): t is NonNullable<typeof t> => t !== null);
+
+    const canvas = document.createElement("canvas");
+    drawRaidPlanImage(canvas, image, tokens, IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    const slug = bossName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const suffix = images.length > 1 ? `-phase${phase}` : "";
+    downloadCanvasAsPng(canvas, `${slug}${suffix}-raidplan.png`);
+  }
+
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-3">
@@ -114,16 +141,24 @@ export function RaidPlanOverlay({
           <div />
         )}
 
-        <button
-          onClick={() => setEditMode((v) => !v)}
-          className={`px-3 py-1.5 rounded text-[12px] font-semibold border ${
-            editMode
-              ? "bg-accent text-accent-ink border-accent"
-              : "border-border-strong text-text-muted"
-          }`}
-        >
-          {editMode ? "Done placing" : "Edit positions"}
-        </button>
+        <div className="flex gap-1.5">
+          <button
+            onClick={handleExport}
+            className="px-3 py-1.5 rounded text-[12px] font-semibold border border-border-strong text-text-muted"
+          >
+            Download image
+          </button>
+          <button
+            onClick={() => setEditMode((v) => !v)}
+            className={`px-3 py-1.5 rounded text-[12px] font-semibold border ${
+              editMode
+                ? "bg-accent text-accent-ink border-accent"
+                : "border-border-strong text-text-muted"
+            }`}
+          >
+            {editMode ? "Done placing" : "Edit positions"}
+          </button>
+        </div>
       </div>
 
       {editMode && (
@@ -142,7 +177,13 @@ export function RaidPlanOverlay({
             one placed exactly at the edge (x=0/1200, y=0/675) isn't half
             cut off by overflow-hidden and left un-clickable. */}
         <div className="absolute inset-0 rounded-md overflow-hidden border border-border">
-          <img src={currentImage.src} alt={bossName} className="w-full h-full object-cover" />
+          <img
+            ref={imgRef}
+            src={currentImage.src}
+            alt={bossName}
+            crossOrigin="anonymous"
+            className="w-full h-full object-cover"
+          />
         </div>
         {visiblePositions.map((position) => {
           const responsibility = responsibilityById.get(position.responsibility_id!);
