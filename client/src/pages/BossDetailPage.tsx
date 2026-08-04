@@ -160,6 +160,7 @@ export function BossDetailPage() {
             responsibilities={responsibilities}
             assignments={assignments}
             raiders={raiders}
+            onPositionMoved={() => setRefreshKey((k) => k + 1)}
           />
         )}
 
