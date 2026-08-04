@@ -53,6 +53,41 @@ def _role_compatible(raider: Raider, responsibility: Responsibility) -> bool:
     return responsibility.requires_role is None or responsibility.requires_role == raider.role
 
 
+# All current tanks are melee, all current healers are ranged — only DPS
+# specs split. Fixed lookup table, not a model field: melee/ranged is a
+# property of the class/spec itself, not something to curate per raider.
+_MELEE_DPS_SPECS = {
+    ("Warrior", "Arms"),
+    ("Warrior", "Fury"),
+    ("Paladin", "Retribution"),
+    ("Rogue", "Assassination"),
+    ("Rogue", "Outlaw"),
+    ("Rogue", "Subtlety"),
+    ("Death Knight", "Frost"),
+    ("Death Knight", "Unholy"),
+    ("Shaman", "Enhancement"),
+    ("Monk", "Windwalker"),
+    ("Druid", "Feral"),
+    ("Demon Hunter", "Havoc"),
+}
+
+
+def _raider_range(raider: Raider) -> str:
+    if raider.role == "Tank":
+        return "melee"
+    if raider.role == "Healer":
+        return "ranged"
+    return "melee" if (raider.wow_class, raider.spec) in _MELEE_DPS_SPECS else "ranged"
+
+
+def _range_compatible(raider: Raider, position: Position | None) -> bool:
+    return (
+        position is None
+        or position.requires_range is None
+        or position.requires_range == _raider_range(raider)
+    )
+
+
 def get_roster() -> dict:
     """List every raider — name, class, spec, role."""
     return {"raiders": [r.to_dict() for r in Raider.query.all()]}
@@ -125,6 +160,14 @@ def propose_reassignment(
             )
         }
 
+    if not _range_compatible(new_raider, linked):
+        return {
+            "error": (
+                f"{new_raider.name} is {_raider_range(new_raider)}, but "
+                f"'{responsibility.name}' requires {linked.requires_range}"
+            )
+        }
+
     current_assignments = Assignment.query.filter_by(responsibility_id=responsibility.id).all()
 
     if from_raider_name:
@@ -190,6 +233,13 @@ def apply_reassignment(proposal: dict) -> dict:
         raise ValueError(
             f"{new_raider.name} is {new_raider.role}, but "
             f"'{responsibility.name}' requires {responsibility.requires_role}"
+        )
+
+    linked = Position.query.filter_by(responsibility_id=responsibility.id).first()
+    if not _range_compatible(new_raider, linked):
+        raise ValueError(
+            f"{new_raider.name} is {_raider_range(new_raider)}, but "
+            f"'{responsibility.name}' requires {linked.requires_range}"
         )
 
     current_assignments = Assignment.query.filter_by(responsibility_id=responsibility.id).all()

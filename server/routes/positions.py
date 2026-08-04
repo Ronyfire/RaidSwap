@@ -6,7 +6,7 @@ from models import Boss, Position, Responsibility
 positions_bp = Blueprint("positions", __name__, url_prefix="/api/positions")
 
 REQUIRED_FIELDS = ["x", "y", "boss_id"]
-UPDATABLE_FIELDS = ["x", "y", "boss_id", "requires_role", "responsibility_id"]
+UPDATABLE_FIELDS = ["x", "y", "boss_id", "requires_role", "requires_range", "responsibility_id"]
 
 
 def _validate_foreign_keys(data):

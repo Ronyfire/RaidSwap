@@ -30,10 +30,16 @@ def make_responsibility(client, **overrides):
     return client.post("/api/responsibilities", json=data).get_json()
 
 
-def link_to_boss(client, boss_id, responsibility_id):
+def link_to_boss(client, boss_id, responsibility_id, requires_range=None):
     client.post(
         "/api/positions",
-        json={"x": 1, "y": 1, "boss_id": boss_id, "responsibility_id": responsibility_id},
+        json={
+            "x": 1,
+            "y": 1,
+            "boss_id": boss_id,
+            "responsibility_id": responsibility_id,
+            "requires_range": requires_range,
+        },
     )
 
 
@@ -163,6 +169,37 @@ def test_propose_reassignment_role_incompatible(client):
 
     result = propose_reassignment(boss["name"], "Taunt swap", "Healy")
     assert "error" in result
+
+
+def test_propose_reassignment_range_incompatible(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Stack behind boss")
+    link_to_boss(client, boss["id"], resp["id"], requires_range="melee")
+    make_raider(client, name="Sharpy", wow_class="Hunter", spec="Marksmanship", role="DPS")
+
+    result = propose_reassignment(boss["name"], "Stack behind boss", "Sharpy")
+    assert "error" in result
+    assert "melee" in result["error"] and "ranged" in result["error"]
+
+
+def test_propose_reassignment_range_compatible(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Stack behind boss")
+    link_to_boss(client, boss["id"], resp["id"], requires_range="melee")
+    make_raider(client, name="Slasher", wow_class="Rogue", spec="Assassination", role="DPS")
+
+    result = propose_reassignment(boss["name"], "Stack behind boss", "Slasher")
+    assert "error" not in result
+
+
+def test_propose_reassignment_no_range_requirement_allows_any(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Stack behind boss")
+    link_to_boss(client, boss["id"], resp["id"])
+    make_raider(client, name="Sharpy", wow_class="Hunter", spec="Marksmanship", role="DPS")
+
+    result = propose_reassignment(boss["name"], "Stack behind boss", "Sharpy")
+    assert "error" not in result
 
 
 def _make_multi_assignee_responsibility(client, boss_id, name="Spirit adds"):
@@ -383,6 +420,21 @@ def test_apply_reassignment_role_incompatible_raises(client):
             {
                 "responsibility_name": "Taunt swap",
                 "to_raider_name": "Healy",
+            }
+        )
+
+
+def test_apply_reassignment_range_incompatible_raises(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Stack behind boss")
+    link_to_boss(client, boss["id"], resp["id"], requires_range="melee")
+    make_raider(client, name="Sharpy", wow_class="Hunter", spec="Marksmanship", role="DPS")
+
+    with pytest.raises(ValueError):
+        apply_reassignment(
+            {
+                "responsibility_name": "Stack behind boss",
+                "to_raider_name": "Sharpy",
             }
         )
 

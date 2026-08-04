@@ -115,6 +115,11 @@ class Position(db.Model):
     y = db.Column(db.Float, nullable=False)
     boss_id = db.Column(db.Integer, db.ForeignKey("bosses.id"), nullable=False)
     requires_role = db.Column(db.String(20))
+    # "melee" / "ranged" — nullable, same "unset = no constraint" pattern as
+    # requires_role. Not backfilled on the curated data yet: which spot is
+    # melee vs. ranged is real fight knowledge (see CLAUDE.md), for Robert to
+    # curate, not to guess (#18).
+    requires_range = db.Column(db.String(10))
     responsibility_id = db.Column(db.Integer, db.ForeignKey("responsibilities.id"), nullable=True)
 
     boss = db.relationship("Boss", back_populates="positions")
@@ -128,6 +133,7 @@ class Position(db.Model):
             "y": self.y,
             "boss_id": self.boss_id,
             "requires_role": self.requires_role,
+            "requires_range": self.requires_range,
             "responsibility_id": self.responsibility_id,
         }
 
