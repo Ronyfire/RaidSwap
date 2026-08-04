@@ -6,13 +6,13 @@ OpenRouter is implemented, picked via AI_PROVIDER. Adding a second provider
 not touching run_agent_turn() or anything that calls it.
 
 Model default: NOT Kimi K2 free (explicitly excluded — see architecture doc).
-google/gemini-2.0-flash-exp:free and meta-llama/llama-3.3-70b-instruct:free
-were both smoke-tested and 404'd (pulled from OpenRouter's free tier).
-Landed on openrouter/free — OpenRouter's own auto-router, which picks among
-whatever free models are currently live and filters for tool-calling support
-— so individual free-slug churn doesn't break this app again. Smoke-tested
-2026-07-28 with a real key: correctly called get_roster. Swap OPENROUTER_MODEL
-in .env for a pinned single model if the routing ever proves unreliable.
+openrouter/free (OpenRouter's own auto-router) and google/gemini-2.0-flash-exp:free
+/meta-llama/llama-3.3-70b-instruct:free were all tried and dropped — either 404'd
+(pulled from the free tier) or, for the auto-router, not reliable enough at
+one-shot tool-calling with the boss-context injection. Pinned to
+nvidia/nemotron-3-super-120b-a12b:free after a head-to-head smoke test against
+openai/gpt-oss-20b:free (0/3) — nemotron passed 3/3. Run
+scripts/smoke_test_model.py against a candidate before ever changing this.
 """
 
 import json
@@ -22,7 +22,7 @@ from openai import OpenAI
 
 from services import agent_tools
 
-_DEFAULT_MODEL = "openrouter/free"
+_DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
 _MAX_TOOL_ITERATIONS = 5
 
 SYSTEM_PROMPT = """You are RaidSwap's raid assignment assistant. You help a WoW \

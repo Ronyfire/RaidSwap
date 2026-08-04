@@ -66,18 +66,26 @@ como se sospechaba antes).
    #55, PR #61, ver agent-architecture.md). Wireado en
    `POST /api/agent/apply`, con countdown en el chat del frontend.
 4. [ ] **→ Entrega a testers** (10-15 raid leaders) — checkpoint de feedback real.
-5. [ ] **Export de nota MRT/NSRT** (Northern Sky): ensamblar la nota del boss y
-   exportarla copiable para el addon, sobre el `note_line` ya existente.
-6. [ ] **Raid plan visual** (#19): overlay de positions sobre imagen de fondo.
+5. [x] **Export de nota MRT/NSRT** (Northern Sky), PR #64 + sintaxis real
+   PR #78 (#71, #76): ensamblar la nota del boss y exportarla copiable para
+   el addon, sobre el `note_line` ya existente.
+6. [x] **Raid plan visual** (#19), PRs #80-83: overlay de positions sobre
+   imagen de fondo real, colocación por drag-and-drop persistiendo x/y real,
+   y export/composite a imagen descargable.
 7. [ ] **Integraciones/APIs** (#20), detrás de adapters: Blizzard Game Data API,
-   Warcraft Logs, WoWAudit, Raider.IO.
+   Warcraft Logs, WoWAudit, Raider.IO. Research hecho, ver
+   [integrations-research.md](./integrations-research.md); falta construir
+   los adapters.
 
 ---
 
 ## Sprint 4 — Refinamiento y limpieza
 
-- [ ] Reglas espaciales melee/ranged en Position al reasignar
-- [ ] Refactor y limpieza de lo construido en S2-S3
+- [ ] Reglas espaciales melee/ranged en Position al reasignar (#18)
+- [x] Refactor y limpieza de lo construido en S2-S3 (#21): audit del repo —
+  sin archivos innecesarios ni código muerto, se corrigió deriva del modelo
+  default del agente (`.env` real vs. `_DEFAULT_MODEL`/`.env.example`) y se
+  puso al día este backlog.
 
 ---
 
@@ -103,4 +111,6 @@ como se sospechaba antes).
 ## Fuera de alcance de todo el programa (aparcado para el futuro)
 - Login con Battle.net OAuth (solo si cada jugador tiene su propia cuenta)
 - Historial completo de versiones de Responsibility (más allá de last_updated)
-- Edición drag-and-drop de posiciones en el overlay visual
+
+(Edición drag-and-drop de posiciones: se sacó de esta lista y se construyó
+igual dentro de #19, PR #81 — ver punto 6 de Sprint 3 arriba.)
