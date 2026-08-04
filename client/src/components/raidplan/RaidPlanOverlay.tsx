@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { Position } from "../../api/positions";
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { updatePosition, type Position } from "../../api/positions";
 import type { Responsibility } from "../../api/responsibilities";
 import type { Assignment } from "../../api/assignments";
 import type { Raider } from "../../api/raiders";
@@ -12,9 +12,12 @@ interface RaidPlanOverlayProps {
   responsibilities: Responsibility[];
   assignments: Assignment[];
   raiders: Raider[];
+  onPositionMoved: () => void;
 }
 
 const PHASE_TAG = /ph:(\d+);/;
+const IMAGE_WIDTH = 1200;
+const IMAGE_HEIGHT = 675;
 
 export function RaidPlanOverlay({
   bossName,
@@ -22,9 +25,14 @@ export function RaidPlanOverlay({
   responsibilities,
   assignments,
   raiders,
+  onPositionMoved,
 }: RaidPlanOverlayProps) {
   const images = RAIDPLAN_IMAGES[bossName];
   const [phase, setPhase] = useState(1);
+  const [editMode, setEditMode] = useState(false);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   if (!images) {
     return (
@@ -56,46 +64,110 @@ export function RaidPlanOverlay({
     return match ? Number(match[1]) === phase : true;
   });
 
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>, positionId: number) {
+    if (!editMode) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDraggingId(positionId);
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    if (draggingId === null || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const relX = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    const relY = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
+    setDragPos({ x: relX * IMAGE_WIDTH, y: relY * IMAGE_HEIGHT });
+  }
+
+  async function handlePointerUp() {
+    if (draggingId === null || !dragPos) {
+      setDraggingId(null);
+      return;
+    }
+    const id = draggingId;
+    const finalPos = dragPos;
+    setDraggingId(null);
+    setDragPos(null);
+    await updatePosition(id, { x: finalPos.x, y: finalPos.y });
+    onPositionMoved();
+  }
+
   return (
     <div className="mt-6">
-      {images.length > 1 && (
-        <div className="flex gap-1.5 mb-3">
-          {[1, 2, 3].map((p) => (
-            <button
-              key={p}
-              onClick={() => setPhase(p)}
-              className={`px-3 py-1.5 rounded text-[12px] font-semibold border ${
-                phase === p
-                  ? "bg-accent text-accent-ink border-accent"
-                  : "border-border-strong text-text-muted"
-              }`}
-            >
-              Phase {p}
-            </button>
-          ))}
-        </div>
+      <div className="flex items-center justify-between mb-3">
+        {images.length > 1 ? (
+          <div className="flex gap-1.5">
+            {[1, 2, 3].map((p) => (
+              <button
+                key={p}
+                onClick={() => setPhase(p)}
+                className={`px-3 py-1.5 rounded text-[12px] font-semibold border ${
+                  phase === p
+                    ? "bg-accent text-accent-ink border-accent"
+                    : "border-border-strong text-text-muted"
+                }`}
+              >
+                Phase {p}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div />
+        )}
+
+        <button
+          onClick={() => setEditMode((v) => !v)}
+          className={`px-3 py-1.5 rounded text-[12px] font-semibold border ${
+            editMode
+              ? "bg-accent text-accent-ink border-accent"
+              : "border-border-strong text-text-muted"
+          }`}
+        >
+          {editMode ? "Done placing" : "Edit positions"}
+        </button>
+      </div>
+
+      {editMode && (
+        <p className="text-[12px] text-text-muted mb-2">
+          Drag a token to reposition it — saves automatically when you let go.
+        </p>
       )}
 
       <div
-        className="relative w-full rounded-md overflow-hidden border border-border"
-        style={{ aspectRatio: "1200 / 675" }}
+        ref={containerRef}
+        className="relative w-full"
+        style={{ aspectRatio: `${IMAGE_WIDTH} / ${IMAGE_HEIGHT}` }}
       >
-        <img src={currentImage.src} alt={bossName} className="w-full h-full object-cover" />
+        {/* Image lives in its own clipped layer so rounded corners look
+            right; tokens are direct children of the unclipped container so
+            one placed exactly at the edge (x=0/1200, y=0/675) isn't half
+            cut off by overflow-hidden and left un-clickable. */}
+        <div className="absolute inset-0 rounded-md overflow-hidden border border-border">
+          <img src={currentImage.src} alt={bossName} className="w-full h-full object-cover" />
+        </div>
         {visiblePositions.map((position) => {
           const responsibility = responsibilityById.get(position.responsibility_id!);
           if (!responsibility) return null;
           const label = raiderNamesFor(responsibility.id);
           const color = roleColor(position.requires_role ?? responsibility.requires_role ?? "");
+          const isDragging = draggingId === position.id && dragPos !== null;
+          const x = isDragging ? dragPos.x : position.x;
+          const y = isDragging ? dragPos.y : position.y;
 
           return (
             <div
               key={position.id}
               title={`${responsibility.name}: ${label}`}
-              className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold text-white whitespace-nowrap shadow-md"
+              onPointerDown={(e) => handlePointerDown(e, position.id)}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold text-white whitespace-nowrap shadow-md select-none ${
+                editMode ? (isDragging ? "cursor-grabbing ring-2 ring-white" : "cursor-grab") : ""
+              }`}
               style={{
-                left: `${(position.x / 1200) * 100}%`,
-                top: `${(position.y / 675) * 100}%`,
+                left: `${(x / IMAGE_WIDTH) * 100}%`,
+                top: `${(y / IMAGE_HEIGHT) * 100}%`,
                 background: color,
+                touchAction: editMode ? "none" : undefined,
               }}
             >
               {label}
