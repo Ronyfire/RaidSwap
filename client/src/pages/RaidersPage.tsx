@@ -9,12 +9,14 @@ import {
 } from "../api/raiders";
 import { RaiderList } from "../components/raiders/RaiderList";
 import { RaiderForm } from "../components/raiders/RaiderForm";
+import { RosterImportForm } from "../components/raiders/RosterImportForm";
 import { Modal } from "../components/Modal";
 
 export function RaidersPage() {
   const [raiders, setRaiders] = useState<Raider[]>([]);
   const [editing, setEditing] = useState<Raider | "new" | null>(null);
   const [removing, setRemoving] = useState<Raider | null>(null);
+  const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,12 +65,20 @@ export function RaidersPage() {
             {raiders.length} raider{raiders.length === 1 ? "" : "s"}
           </div>
         </div>
-        <button
-          onClick={() => setEditing("new")}
-          className="bg-accent border-none rounded px-4.5 py-2.5 text-accent-ink font-bold text-[13px]"
-        >
-          Add Raider
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setImporting(true)}
+            className="border border-border-strong rounded px-4.5 py-2.5 text-text-muted font-bold text-[13px]"
+          >
+            Import roster
+          </button>
+          <button
+            onClick={() => setEditing("new")}
+            className="bg-accent border-none rounded px-4.5 py-2.5 text-accent-ink font-bold text-[13px]"
+          >
+            Add Raider
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -107,6 +117,18 @@ export function RaidersPage() {
             initial={editing === "new" ? undefined : editing}
             onSubmit={handleSubmit}
             onCancel={() => setEditing(null)}
+          />
+        </Modal>
+      )}
+
+      {importing && (
+        <Modal onClose={() => setImporting(false)}>
+          <RosterImportForm
+            onDone={() => {
+              setImporting(false);
+              load();
+            }}
+            onCancel={() => setImporting(false)}
           />
         </Modal>
       )}

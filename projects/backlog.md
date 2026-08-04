@@ -72,10 +72,14 @@ como se sospechaba antes).
 6. [x] **Raid plan visual** (#19), PRs #80-83: overlay de positions sobre
    imagen de fondo real, colocación por drag-and-drop persistiendo x/y real,
    y export/composite a imagen descargable.
-7. [ ] **Integraciones/APIs** (#20), detrás de adapters: Blizzard Game Data API,
+7. [~] **Integraciones/APIs** (#20), detrás de adapters: Blizzard Game Data API,
    Warcraft Logs, WoWAudit, Raider.IO. Research hecho, ver
-   [integrations-research.md](./integrations-research.md); falta construir
-   los adapters.
+   [integrations-research.md](./integrations-research.md). WoWAudit: import
+   de roster para onboarding de testers construido (adapter +
+   fallback de pegar roster) — no hay endpoint REST público documentado,
+   el adapter lee el `prefetched_data` que WoWAudit embebe en la página del
+   roster (ver `server/services/wowaudit_service.py`). Warcraft Logs y
+   Blizzard Journal quedan post-launch (issues aparte, ver más abajo).
 
 ---
 
