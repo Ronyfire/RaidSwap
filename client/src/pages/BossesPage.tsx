@@ -1,16 +1,27 @@
 import { useEffect, useState } from "react";
 import { getBosses, type Boss } from "../api/bosses";
+import { getPositions, type Position } from "../api/positions";
+import { getResponsibilities, type Responsibility } from "../api/responsibilities";
 import { BossList } from "../components/bosses/BossList";
 
 export function BossesPage() {
   const [bosses, setBosses] = useState<Boss[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [responsibilities, setResponsibilities] = useState<Responsibility[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        setBosses(await getBosses());
+        const [bossesData, positionsData, responsibilitiesData] = await Promise.all([
+          getBosses(),
+          getPositions(),
+          getResponsibilities(),
+        ]);
+        setBosses(bossesData);
+        setPositions(positionsData);
+        setResponsibilities(responsibilitiesData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -52,7 +63,7 @@ export function BossesPage() {
           ))}
         </div>
       ) : (
-        <BossList bosses={bosses} />
+        <BossList bosses={bosses} positions={positions} responsibilities={responsibilities} />
       )}
     </section>
   );
