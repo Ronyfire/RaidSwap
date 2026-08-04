@@ -140,6 +140,7 @@ class Position(db.Model):
 
 class MechanicProfile(db.Model):
     __tablename__ = "mechanic_profiles"
+    __table_args__ = (db.UniqueConstraint("raider_id", "responsibility_id"),)
 
     id = db.Column(db.Integer, primary_key=True)
     raider_id = db.Column(db.Integer, db.ForeignKey("raiders.id"), nullable=False)

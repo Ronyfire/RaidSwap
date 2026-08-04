@@ -61,6 +61,105 @@ def test_create_mechanic_profile_responsibility_not_found(client):
     assert resp.status_code == 404
 
 
+def test_create_mechanic_profile_duplicate_pair_rejected(client):
+    raider_id = make_raider(client)
+    responsibility_id = make_responsibility(client)
+    payload = {
+        "raider_id": raider_id,
+        "responsibility_id": responsibility_id,
+        "proficiency_level": "never",
+    }
+    first = client.post("/api/mechanic-profiles", json=payload)
+    assert first.status_code == 201
+
+    second = client.post("/api/mechanic-profiles", json=payload)
+    assert second.status_code == 400
+    assert "already exists" in second.get_json()["error"]
+
+
+def test_create_mechanic_profile_role_incompatible_rejected(client):
+    raider_id = make_raider(client, name="Healy", role="Healer")
+    responsibility_id = make_responsibility(client, name="Interrupt", requires_role="DPS")
+
+    resp = client.post(
+        "/api/mechanic-profiles",
+        json={
+            "raider_id": raider_id,
+            "responsibility_id": responsibility_id,
+            "proficiency_level": "never",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Healer" in resp.get_json()["error"] and "DPS" in resp.get_json()["error"]
+
+
+def test_update_mechanic_profile_into_duplicate_pair_rejected(client):
+    raider_id = make_raider(client)
+    responsibility_a = make_responsibility(client, name="Interrupt A")
+    responsibility_b = make_responsibility(client, name="Interrupt B")
+    client.post(
+        "/api/mechanic-profiles",
+        json={
+            "raider_id": raider_id,
+            "responsibility_id": responsibility_a,
+            "proficiency_level": "never",
+        },
+    )
+    profile_b_id = client.post(
+        "/api/mechanic-profiles",
+        json={
+            "raider_id": raider_id,
+            "responsibility_id": responsibility_b,
+            "proficiency_level": "never",
+        },
+    ).get_json()["id"]
+
+    resp = client.put(
+        f"/api/mechanic-profiles/{profile_b_id}", json={"responsibility_id": responsibility_a}
+    )
+    assert resp.status_code == 400
+    assert "already exists" in resp.get_json()["error"]
+
+
+def test_update_mechanic_profile_own_pair_unchanged_is_allowed(client):
+    raider_id = make_raider(client)
+    responsibility_id = make_responsibility(client)
+    profile_id = client.post(
+        "/api/mechanic-profiles",
+        json={
+            "raider_id": raider_id,
+            "responsibility_id": responsibility_id,
+            "proficiency_level": "never",
+        },
+    ).get_json()["id"]
+
+    resp = client.put(
+        f"/api/mechanic-profiles/{profile_id}",
+        json={"raider_id": raider_id, "proficiency_level": "mastered"},
+    )
+    assert resp.status_code == 200
+    assert resp.get_json()["proficiency_level"] == "mastered"
+
+
+def test_update_mechanic_profile_role_incompatible_rejected(client):
+    raider_id = make_raider(client, role="Tank")
+    tank_resp = make_responsibility(client, name="Taunt swap", requires_role="Tank")
+    dps_resp = make_responsibility(client, name="Interrupt", requires_role="DPS")
+    profile_id = client.post(
+        "/api/mechanic-profiles",
+        json={
+            "raider_id": raider_id,
+            "responsibility_id": tank_resp,
+            "proficiency_level": "never",
+        },
+    ).get_json()["id"]
+
+    resp = client.put(
+        f"/api/mechanic-profiles/{profile_id}", json={"responsibility_id": dps_resp}
+    )
+    assert resp.status_code == 400
+
+
 def test_update_mechanic_profile(client):
     raider_id = make_raider(client)
     responsibility_id = make_responsibility(client)
