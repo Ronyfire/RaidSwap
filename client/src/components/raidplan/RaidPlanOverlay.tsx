@@ -32,9 +32,15 @@ export function RaidPlanOverlay({
   const [phase, setPhase] = useState(1);
   const [editMode, setEditMode] = useState(false);
   const [draggingId, setDraggingId] = useState<number | null>(null);
-  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  // Live drag position lives in a ref, not state — updating state on every
+  // pointermove was re-rendering the whole overlay (re-filtering positions,
+  // rebuilding the responsibility map, recomputing every token's label) on
+  // every mouse-move event, which is what caused the pick-up/drag lag. The
+  // dragged token's position is mutated directly on its DOM node instead;
+  // only the FINAL position on pointerup goes through React/the API.
+  const dragPosRef = useRef<{ x: number; y: number } | null>(null);
 
   if (!images) {
     return (
@@ -77,18 +83,18 @@ export function RaidPlanOverlay({
     const rect = containerRef.current.getBoundingClientRect();
     const relX = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
     const relY = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
-    setDragPos({ x: relX * IMAGE_WIDTH, y: relY * IMAGE_HEIGHT });
+    dragPosRef.current = { x: relX * IMAGE_WIDTH, y: relY * IMAGE_HEIGHT };
+    // Direct DOM mutation — no setState, no re-render, no lag.
+    event.currentTarget.style.left = `${relX * 100}%`;
+    event.currentTarget.style.top = `${relY * 100}%`;
   }
 
   async function handlePointerUp() {
-    if (draggingId === null || !dragPos) {
-      setDraggingId(null);
-      return;
-    }
+    const finalPos = dragPosRef.current;
     const id = draggingId;
-    const finalPos = dragPos;
     setDraggingId(null);
-    setDragPos(null);
+    dragPosRef.current = null;
+    if (id === null || !finalPos) return;
     await updatePosition(id, { x: finalPos.x, y: finalPos.y });
     onPositionMoved();
   }
@@ -190,9 +196,7 @@ export function RaidPlanOverlay({
           if (!responsibility) return null;
           const label = raiderNamesFor(responsibility.id);
           const color = roleColor(position.requires_role ?? responsibility.requires_role ?? "");
-          const isDragging = draggingId === position.id && dragPos !== null;
-          const x = isDragging ? dragPos.x : position.x;
-          const y = isDragging ? dragPos.y : position.y;
+          const isDragging = draggingId === position.id;
 
           return (
             <div
@@ -205,8 +209,8 @@ export function RaidPlanOverlay({
                 editMode ? (isDragging ? "cursor-grabbing ring-2 ring-white" : "cursor-grab") : ""
               }`}
               style={{
-                left: `${(x / IMAGE_WIDTH) * 100}%`,
-                top: `${(y / IMAGE_HEIGHT) * 100}%`,
+                left: `${(position.x / IMAGE_WIDTH) * 100}%`,
+                top: `${(position.y / IMAGE_HEIGHT) * 100}%`,
                 background: color,
                 touchAction: editMode ? "none" : undefined,
               }}
