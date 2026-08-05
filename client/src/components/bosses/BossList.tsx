@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { Boss } from "../../api/bosses";
 import type { Position } from "../../api/positions";
 import type { Responsibility } from "../../api/responsibilities";
@@ -24,8 +25,10 @@ function iconColor(id: number): string {
 }
 
 export function BossList({ bosses, positions, responsibilities }: BossListProps) {
+  const { t } = useTranslation();
+
   if (bosses.length === 0) {
-    return <p className="text-text-muted text-sm">No bosses yet.</p>;
+    return <p className="text-text-muted text-sm">{t("bossList.noBosses")}</p>;
   }
 
   return (
@@ -44,7 +47,9 @@ export function BossList({ bosses, positions, responsibilities }: BossListProps)
             />
             <div className="flex-1 min-w-0">
               <div className="font-heading font-semibold text-[15px] truncate">{boss.name}</div>
-              <div className="text-[11px] text-text-muted mt-1 mb-1.5">Order {boss.order}</div>
+              <div className="text-[11px] text-text-muted mt-1 mb-1.5">
+                {t("bossList.order", { order: boss.order })}
+              </div>
               {total > 0 && (
                 <>
                   <div className="h-1.5 w-full rounded bg-nav-active overflow-hidden">
@@ -54,7 +59,7 @@ export function BossList({ bosses, positions, responsibilities }: BossListProps)
                     />
                   </div>
                   <div className="text-[10.5px] text-text-subtle mt-1">
-                    {confirmed}/{total} confirmed
+                    {t("bossList.confirmedProgress", { confirmed, total })}
                   </div>
                 </>
               )}

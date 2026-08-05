@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Raider } from "../../api/raiders";
 import { classColor, roleColor } from "../../lib/wowClasses";
 
@@ -8,17 +9,19 @@ interface RaiderListProps {
 }
 
 export function RaiderList({ raiders, onEdit, onRemove }: RaiderListProps) {
+  const { t } = useTranslation();
+
   if (raiders.length === 0) {
-    return <p className="text-text-muted text-sm">No raiders yet.</p>;
+    return <p className="text-text-muted text-sm">{t("raiderList.noRaiders")}</p>;
   }
 
   return (
     <div className="border border-border rounded-md overflow-hidden">
       <div className="grid grid-cols-[2fr_1.2fr_1.2fr_1fr_100px] px-4 py-2.5 bg-surface text-[11px] uppercase tracking-wide text-text-subtle">
-        <div>Name</div>
-        <div>Class</div>
-        <div>Spec</div>
-        <div>Role</div>
+        <div>{t("common.name")}</div>
+        <div>{t("common.class")}</div>
+        <div>{t("common.spec")}</div>
+        <div>{t("common.role")}</div>
         <div></div>
       </div>
       {raiders.map((raider) => (
@@ -50,13 +53,13 @@ export function RaiderList({ raiders, onEdit, onRemove }: RaiderListProps) {
               onClick={() => onEdit(raider)}
               className="border border-border-strong rounded text-text-muted text-[11px] px-2.5 py-1"
             >
-              Edit
+              {t("common.edit")}
             </button>
             <button
               onClick={() => onRemove(raider)}
               className="border border-border-strong rounded text-danger text-[11px] px-2.5 py-1"
             >
-              Remove
+              {t("common.remove")}
             </button>
           </div>
         </div>

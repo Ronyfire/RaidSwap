@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuthContext } from "../context/useAuthContext";
 import { ApiError } from "../api/client";
 
 export function LoginPage() {
   const { login, register } = useAuthContext();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
@@ -25,7 +27,7 @@ export function LoginPage() {
       }
       navigate("/");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Unknown error");
+      setError(err instanceof ApiError ? err.message : t("common.unknownError"));
     } finally {
       setLoading(false);
     }
@@ -43,7 +45,7 @@ export function LoginPage() {
         </div>
 
         <label className="block text-[11px] uppercase tracking-wide text-text-subtle mb-1.5">
-          Email
+          {t("login.email")}
         </label>
         <input
           type="email"
@@ -54,7 +56,7 @@ export function LoginPage() {
         />
 
         <label className="block text-[11px] uppercase tracking-wide text-text-subtle mb-1.5">
-          Password
+          {t("login.password")}
         </label>
         <input
           type="password"
@@ -71,7 +73,7 @@ export function LoginPage() {
           disabled={loading}
           className="w-full bg-accent border-none rounded px-3 py-2.5 text-accent-ink font-bold text-[13px] mb-3"
         >
-          {mode === "login" ? "Log in" : "Create account"}
+          {mode === "login" ? t("login.logIn") : t("login.createAccount")}
         </button>
 
         <button
@@ -79,7 +81,7 @@ export function LoginPage() {
           onClick={() => setMode(mode === "login" ? "register" : "login")}
           className="w-full text-text-muted text-[12.5px]"
         >
-          {mode === "login" ? "Need an account? Register" : "Already have an account? Log in"}
+          {mode === "login" ? t("login.needAccount") : t("login.haveAccount")}
         </button>
       </form>
     </div>

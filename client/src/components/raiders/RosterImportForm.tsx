@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   confirmRosterImport,
   previewPastedRoster,
@@ -28,6 +29,7 @@ const tabClass = (active: boolean) =>
   }`;
 
 export function RosterImportForm({ onDone, onCancel }: RosterImportFormProps) {
+  const { t } = useTranslation();
   const [source, setSource] = useState<Source>("wowaudit");
   const [region, setRegion] = useState("eu");
   const [realm, setRealm] = useState("");
@@ -50,7 +52,7 @@ export function RosterImportForm({ onDone, onCancel }: RosterImportFormProps) {
         setStep({ name: "preview", entries, skippedLines: skipped_lines });
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't load the roster");
+      setError(err instanceof ApiError ? err.message : t("rosterImportForm.loadError"));
     } finally {
       setLoading(false);
     }
@@ -64,7 +66,7 @@ export function RosterImportForm({ onDone, onCancel }: RosterImportFormProps) {
       const result = await confirmRosterImport(step.entries);
       setStep({ name: "done", result });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Import failed");
+      setError(err instanceof ApiError ? err.message : t("rosterImportForm.importError"));
     } finally {
       setLoading(false);
     }
@@ -73,16 +75,19 @@ export function RosterImportForm({ onDone, onCancel }: RosterImportFormProps) {
   if (step.name === "done") {
     return (
       <div>
-        <div className="font-heading font-semibold text-base mb-4">Roster imported</div>
+        <div className="font-heading font-semibold text-base mb-4">{t("rosterImportForm.done")}</div>
         <div className="text-[13.5px] text-text-muted mb-5">
-          {step.result.created.length} added, {step.result.updated.length} updated.
+          {t("rosterImportForm.summary", {
+            created: step.result.created.length,
+            updated: step.result.updated.length,
+          })}
         </div>
         <div className="flex justify-end">
           <button
             onClick={onDone}
             className="bg-accent border-none rounded px-4 py-2 text-accent-ink font-bold text-[13px]"
           >
-            Done
+            {t("rosterImportForm.doneButton")}
           </button>
         </div>
       </div>
@@ -93,11 +98,11 @@ export function RosterImportForm({ onDone, onCancel }: RosterImportFormProps) {
     return (
       <div>
         <div className="font-heading font-semibold text-base mb-4">
-          Preview ({step.entries.length} raider{step.entries.length === 1 ? "" : "s"})
+          {t("rosterImportForm.previewCount", { count: step.entries.length })}
         </div>
         {step.skippedLines ? (
           <div className="text-[12px] text-text-subtle mb-3">
-            Skipped {step.skippedLines} line{step.skippedLines === 1 ? "" : "s"} that didn't parse.
+            {t("rosterImportForm.skippedLines", { count: step.skippedLines })}
           </div>
         ) : null}
         <div className="max-h-64 overflow-y-auto mb-4 border border-border-muted rounded">
@@ -125,14 +130,16 @@ export function RosterImportForm({ onDone, onCancel }: RosterImportFormProps) {
             onClick={() => setStep({ name: "form" })}
             className="border border-border-strong rounded px-4 py-2 text-text-muted text-[13px]"
           >
-            Back
+            {t("common.back")}
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading || step.entries.length === 0}
             className="bg-accent border-none rounded px-4 py-2 text-accent-ink font-bold text-[13px] disabled:opacity-50"
           >
-            {loading ? "Importing…" : `Import ${step.entries.length}`}
+            {loading
+              ? t("rosterImportForm.importing")
+              : t("rosterImportForm.import", { count: step.entries.length })}
           </button>
         </div>
       </div>
@@ -141,41 +148,41 @@ export function RosterImportForm({ onDone, onCancel }: RosterImportFormProps) {
 
   return (
     <div>
-      <div className="font-heading font-semibold text-base mb-4">Import roster</div>
+      <div className="font-heading font-semibold text-base mb-4">{t("rosterImportForm.title")}</div>
 
       <div className="flex gap-1.5 mb-4">
         <button type="button" className={tabClass(source === "wowaudit")} onClick={() => setSource("wowaudit")}>
-          WoWAudit
+          {t("rosterImportForm.wowaudit")}
         </button>
         <button type="button" className={tabClass(source === "paste")} onClick={() => setSource("paste")}>
-          Paste roster
+          {t("rosterImportForm.paste")}
         </button>
       </div>
 
       {source === "wowaudit" ? (
         <>
-          <label className={labelClass}>Region</label>
+          <label className={labelClass}>{t("rosterImportForm.region")}</label>
           <input className={inputClass} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="eu" />
-          <label className={labelClass}>Realm</label>
+          <label className={labelClass}>{t("rosterImportForm.realm")}</label>
           <input
             className={inputClass}
             value={realm}
             onChange={(e) => setRealm(e.target.value)}
             placeholder="sanguino"
           />
-          <label className={labelClass}>Guild</label>
+          <label className={labelClass}>{t("rosterImportForm.guild")}</label>
           <input
             className={inputClass}
             value={guild}
             onChange={(e) => setGuild(e.target.value)}
             placeholder="gamewark"
           />
-          <label className={labelClass}>Team</label>
+          <label className={labelClass}>{t("rosterImportForm.team")}</label>
           <input className={inputClass} value={team} onChange={(e) => setTeam(e.target.value)} placeholder="main" />
         </>
       ) : (
         <>
-          <label className={labelClass}>Roster (one per line: name, class, spec, role)</label>
+          <label className={labelClass}>{t("rosterImportForm.pastedLabel")}</label>
           <textarea
             className={`${inputClass} h-32 font-mono`}
             value={pastedText}
@@ -197,14 +204,14 @@ export function RosterImportForm({ onDone, onCancel }: RosterImportFormProps) {
           onClick={onCancel}
           className="border border-border-strong rounded px-4 py-2 text-text-muted text-[13px]"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           onClick={handlePreview}
           disabled={loading || (source === "wowaudit" ? !realm || !guild || !team : !pastedText.trim())}
           className="bg-accent border-none rounded px-4 py-2 text-accent-ink font-bold text-[13px] disabled:opacity-50"
         >
-          {loading ? "Loading…" : "Preview"}
+          {loading ? t("rosterImportForm.loading") : t("rosterImportForm.preview")}
         </button>
       </div>
     </div>

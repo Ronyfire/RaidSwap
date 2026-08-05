@@ -1,12 +1,13 @@
+import { useTranslation } from "react-i18next";
 import type { Boss } from "../../api/bosses";
 import type { Responsibility } from "../../api/responsibilities";
 import type { MechanicProfile } from "../../api/mechanicProfiles";
 
 const PROFICIENCY_LEVELS = ["never", "has_done_it", "mastered"] as const;
-const PROFICIENCY_LABELS: Record<(typeof PROFICIENCY_LEVELS)[number], string> = {
-  never: "Never",
-  has_done_it: "Has done it",
-  mastered: "Mastered",
+const PROFICIENCY_LABEL_KEYS: Record<(typeof PROFICIENCY_LEVELS)[number], string> = {
+  never: "mechanicProfileList.never",
+  has_done_it: "mechanicProfileList.hasDoneIt",
+  mastered: "mechanicProfileList.mastered",
 };
 
 export interface MechanicProfileGroup {
@@ -21,12 +22,10 @@ interface MechanicProfileListProps {
 }
 
 export function MechanicProfileList({ groups, profiles, onSetLevel }: MechanicProfileListProps) {
+  const { t } = useTranslation();
+
   if (groups.length === 0) {
-    return (
-      <p className="text-text-muted text-sm">
-        No compatible responsibilities for this raider's role yet.
-      </p>
-    );
+    return <p className="text-text-muted text-sm">{t("mechanicProfileList.noCompatible")}</p>;
   }
 
   function levelFor(responsibilityId: number): string | undefined {
@@ -67,7 +66,7 @@ export function MechanicProfileList({ groups, profiles, onSetLevel }: MechanicPr
                             : "border-border-strong text-text-muted"
                         }`}
                       >
-                        {PROFICIENCY_LABELS[level]}
+                        {t(PROFICIENCY_LABEL_KEYS[level])}
                       </button>
                     ))}
                   </div>

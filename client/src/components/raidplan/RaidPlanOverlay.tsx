@@ -1,4 +1,5 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { updatePosition, type Position } from "../../api/positions";
 import type { Responsibility } from "../../api/responsibilities";
 import type { Assignment } from "../../api/assignments";
@@ -28,6 +29,7 @@ export function RaidPlanOverlay({
   raiders,
   onPositionMoved,
 }: RaidPlanOverlayProps) {
+  const { t } = useTranslation();
   const images = RAIDPLAN_IMAGES[bossName];
   const [phase, setPhase] = useState(1);
   const [editMode, setEditMode] = useState(false);
@@ -43,9 +45,7 @@ export function RaidPlanOverlay({
   const dragPosRef = useRef<{ x: number; y: number } | null>(null);
 
   if (!images) {
-    return (
-      <p className="text-text-muted text-sm mt-6">No raid plan image yet for this boss.</p>
-    );
+    return <p className="text-text-muted text-sm mt-6">{t("raidPlanOverlay.noImage")}</p>;
   }
 
   const currentImage =
@@ -58,7 +58,7 @@ export function RaidPlanOverlay({
       .filter((a) => a.responsibility_id === responsibilityId)
       .map((a) => a.raider_id);
     const names = raiders.filter((r) => raiderIds.includes(r.id)).map((r) => r.name);
-    return names.length > 0 ? names.join(", ") : "Unassigned";
+    return names.length > 0 ? names.join(", ") : t("common.unassigned");
   }
 
   // Phase filtering only matters when there's more than one image to switch
@@ -114,7 +114,7 @@ export function RaidPlanOverlay({
           color: roleColor(position.requires_role ?? responsibility.requires_role ?? ""),
         };
       })
-      .filter((t): t is NonNullable<typeof t> => t !== null);
+      .filter((token): token is NonNullable<typeof token> => token !== null);
 
     const canvas = document.createElement("canvas");
     drawRaidPlanImage(canvas, image, tokens, IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -139,7 +139,7 @@ export function RaidPlanOverlay({
                     : "border-border-strong text-text-muted"
                 }`}
               >
-                Phase {p}
+                {t("raidPlanOverlay.phase", { n: p })}
               </button>
             ))}
           </div>
@@ -152,7 +152,7 @@ export function RaidPlanOverlay({
             onClick={handleExport}
             className="px-3 py-1.5 rounded text-[12px] font-semibold border border-border-strong text-text-muted"
           >
-            Download image
+            {t("raidPlanOverlay.downloadImage")}
           </button>
           <button
             onClick={() => setEditMode((v) => !v)}
@@ -162,15 +162,13 @@ export function RaidPlanOverlay({
                 : "border-border-strong text-text-muted"
             }`}
           >
-            {editMode ? "Done placing" : "Edit positions"}
+            {editMode ? t("raidPlanOverlay.donePlacing") : t("raidPlanOverlay.editPositions")}
           </button>
         </div>
       </div>
 
       {editMode && (
-        <p className="text-[12px] text-text-muted mb-2">
-          Drag a token to reposition it — saves automatically when you let go.
-        </p>
+        <p className="text-[12px] text-text-muted mb-2">{t("raidPlanOverlay.dragHint")}</p>
       )}
 
       <div
