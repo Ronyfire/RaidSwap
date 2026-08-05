@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Raider } from "../../api/raiders";
 import { classColor } from "../../lib/wowClasses";
 
@@ -12,8 +13,10 @@ export function MechanicProfileRaiderList({
   selectedRaiderId,
   onSelect,
 }: MechanicProfileRaiderListProps) {
+  const { t } = useTranslation();
+
   if (raiders.length === 0) {
-    return <p className="text-text-muted text-sm">No raiders yet.</p>;
+    return <p className="text-text-muted text-sm">{t("mechanicProfileRaiderList.noRaiders")}</p>;
   }
 
   return (

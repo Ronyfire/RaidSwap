@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getBosses, type Boss } from "../api/bosses";
 import { getPositions, type Position } from "../api/positions";
 import { getResponsibilities, type Responsibility } from "../api/responsibilities";
 import { BossList } from "../components/bosses/BossList";
 
 export function BossesPage() {
+  const { t } = useTranslation();
   const [bosses, setBosses] = useState<Boss[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [responsibilities, setResponsibilities] = useState<Responsibility[]>([]);
@@ -23,12 +25,15 @@ export function BossesPage() {
         setPositions(positionsData);
         setResponsibilities(responsibilitiesData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError(err instanceof Error ? err.message : t("common.unknownError"));
       } finally {
         setLoading(false);
       }
     }
     load();
+    // Deliberately fetch once on mount — 't' is stable enough for this and
+    // shouldn't trigger a refetch on a language toggle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -36,10 +41,10 @@ export function BossesPage() {
       <div className="flex items-baseline justify-between gap-4 mb-2">
         <h1 className="font-heading text-2xl font-semibold">The Venomous Abyss</h1>
         <div className="text-xs font-mono text-text-muted whitespace-nowrap">
-          {bosses.length} boss{bosses.length === 1 ? "" : "es"}
+          {t("bossesPage.bossCount", { count: bosses.length })}
         </div>
       </div>
-      <div className="text-[13px] text-text-muted mb-7">Bosses in this raid tier</div>
+      <div className="text-[13px] text-text-muted mb-7">{t("bossesPage.subtitle")}</div>
 
       {error && (
         <p role="alert" className="text-danger text-sm mb-4">

@@ -1,0 +1,143 @@
+{
+  "common": {
+    "unknownError": "Unknown error",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "remove": "Remove",
+    "save": "Save",
+    "back": "Back",
+    "loading": "Loading...",
+    "name": "Name",
+    "class": "Class",
+    "spec": "Spec",
+    "role": "Role",
+    "status": "Status",
+    "active": "Active",
+    "bench": "Bench",
+    "confirmed": "confirmed",
+    "unconfirmed": "unconfirmed",
+    "unassigned": "Unassigned"
+  },
+  "nav": {
+    "groupPlan": "Plan",
+    "roster": "Roster",
+    "bosses": "Bosses",
+    "responsibilities": "Responsibilities",
+    "mechanicProfiles": "Mechanic Profiles",
+    "groupLogs": "Logs",
+    "importReport": "Import Report",
+    "raidReview": "Raid Review",
+    "groupSettings": "Settings",
+    "dataSources": "Data Sources",
+    "soon": "Soon",
+    "logout": "Log out"
+  },
+  "login": {
+    "email": "Email",
+    "password": "Password",
+    "logIn": "Log in",
+    "createAccount": "Create account",
+    "needAccount": "Need an account? Register",
+    "haveAccount": "Already have an account? Log in"
+  },
+  "raidersPage": {
+    "title": "Roster",
+    "raiderCount_one": "{{count}} raider",
+    "raiderCount_other": "{{count}} raiders",
+    "importRoster": "Import roster",
+    "addRaider": "Add Raider",
+    "active": "Active ({{count}})",
+    "bench": "Bench ({{count}})",
+    "removeTitle": "Remove raider?",
+    "removeBody": "This will remove {{name}} from the roster."
+  },
+  "raiderForm": {
+    "addRaider": "Add Raider",
+    "editRaider": "Edit Raider"
+  },
+  "raiderList": {
+    "noRaiders": "No raiders yet."
+  },
+  "rosterImportForm": {
+    "title": "Import roster",
+    "wowaudit": "WoWAudit",
+    "paste": "Paste roster",
+    "region": "Region",
+    "realm": "Realm",
+    "guild": "Guild",
+    "team": "Team",
+    "pastedLabel": "Roster (one per line: name, class, spec, role)",
+    "preview": "Preview",
+    "loading": "Loading…",
+    "previewCount_one": "Preview ({{count}} raider)",
+    "previewCount_other": "Preview ({{count}} raiders)",
+    "skippedLines_one": "Skipped {{count}} line that didn't parse.",
+    "skippedLines_other": "Skipped {{count}} lines that didn't parse.",
+    "import": "Import {{count}}",
+    "importing": "Importing…",
+    "done": "Roster imported",
+    "summary": "{{created}} added, {{updated}} updated.",
+    "doneButton": "Done",
+    "loadError": "Couldn't load the roster",
+    "importError": "Import failed"
+  },
+  "bossesPage": {
+    "subtitle": "Bosses in this raid tier",
+    "bossCount_one": "{{count}} boss",
+    "bossCount_other": "{{count}} bosses"
+  },
+  "bossList": {
+    "order": "Order {{order}}",
+    "confirmedProgress": "{{confirmed}}/{{total}} confirmed",
+    "noBosses": "No bosses yet."
+  },
+  "bossDetailPage": {
+    "backToBosses": "← Bosses",
+    "tabAssignments": "Assignments",
+    "tabNotes": "Notes",
+    "tabRaidPlan": "Raid Plan",
+    "exportNote": "Export note (MRT/NSRT)",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "noResponsibilities": "This boss has no responsibilities yet.",
+    "noNote": "No note"
+  },
+  "raidPlanOverlay": {
+    "phase": "Phase {{n}}",
+    "downloadImage": "Download image",
+    "editPositions": "Edit positions",
+    "donePlacing": "Done placing",
+    "dragHint": "Drag a token to reposition it — saves automatically when you let go.",
+    "noImage": "No raid plan image yet for this boss."
+  },
+  "responsibilitiesPage": {
+    "title": "Responsibilities",
+    "subtitle": "Mechanic library for this raid tier — curated content, updated as encounters are verified on PTR."
+  },
+  "responsibilityList": {
+    "noResponsibilities": "No responsibilities yet.",
+    "requiresPriorExperience": "Requires prior experience"
+  },
+  "mechanicProfilesPage": {
+    "title": "Mechanic Profiles",
+    "subtitle": "Track each raider's experience with specific mechanics."
+  },
+  "mechanicProfileList": {
+    "noCompatible": "No compatible responsibilities for this raider's role yet.",
+    "never": "Never",
+    "hasDoneIt": "Has done it",
+    "mastered": "Mastered"
+  },
+  "mechanicProfileRaiderList": {
+    "noRaiders": "No raiders yet."
+  },
+  "agentChat": {
+    "examplePrompt": "Ask me to reassign a responsibility — e.g. \"put Rob on Interrupt instead of Sam\".",
+    "thinking": "Thinking...",
+    "apply": "Apply",
+    "discard": "Discard",
+    "waitSeconds": "Wait {{seconds}}s",
+    "inputPlaceholder": "Ask about a reassignment...",
+    "send": "Send"
+  }
+}

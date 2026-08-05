@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Responsibility } from "../../api/responsibilities";
 import { roleColor } from "../../lib/wowClasses";
 
@@ -6,8 +7,10 @@ interface ResponsibilityListProps {
 }
 
 export function ResponsibilityList({ responsibilities }: ResponsibilityListProps) {
+  const { t } = useTranslation();
+
   if (responsibilities.length === 0) {
-    return <p className="text-text-muted text-sm">No responsibilities yet.</p>;
+    return <p className="text-text-muted text-sm">{t("responsibilityList.noResponsibilities")}</p>;
   }
 
   return (
@@ -30,7 +33,9 @@ export function ResponsibilityList({ responsibilities }: ResponsibilityListProps
                   : "bg-warning/20 text-warning"
               }`}
             >
-              {responsibility.confidence}
+              {responsibility.confidence === "confirmed"
+                ? t("common.confirmed")
+                : t("common.unconfirmed")}
             </span>
           </div>
 
@@ -55,7 +60,9 @@ export function ResponsibilityList({ responsibilities }: ResponsibilityListProps
               </span>
             )}
             {responsibility.requires_prior_experience && (
-              <span className="text-[11px] font-mono text-warning">Requires prior experience</span>
+              <span className="text-[11px] font-mono text-warning">
+                {t("responsibilityList.requiresPriorExperience")}
+              </span>
             )}
           </div>
 

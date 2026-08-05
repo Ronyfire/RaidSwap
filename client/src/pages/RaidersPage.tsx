@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getRaiders,
   createRaider,
@@ -13,6 +14,7 @@ import { RosterImportForm } from "../components/raiders/RosterImportForm";
 import { Modal } from "../components/Modal";
 
 export function RaidersPage() {
+  const { t } = useTranslation();
   const [raiders, setRaiders] = useState<Raider[]>([]);
   const [editing, setEditing] = useState<Raider | "new" | null>(null);
   const [removing, setRemoving] = useState<Raider | null>(null);
@@ -27,7 +29,7 @@ export function RaidersPage() {
     try {
       setRaiders(await getRaiders());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : t("common.unknownError"));
     }
   }
 
@@ -41,7 +43,7 @@ export function RaidersPage() {
       setEditing(null);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : t("common.unknownError"));
     }
   }
 
@@ -52,7 +54,7 @@ export function RaidersPage() {
       setRemoving(null);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : t("common.unknownError"));
     }
   }
 
@@ -60,9 +62,9 @@ export function RaidersPage() {
     <section className="p-8 px-10">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-heading text-2xl font-semibold mb-1">Roster</h1>
+          <h1 className="font-heading text-2xl font-semibold mb-1">{t("raidersPage.title")}</h1>
           <div className="text-[13px] text-text-muted">
-            {raiders.length} raider{raiders.length === 1 ? "" : "s"}
+            {t("raidersPage.raiderCount", { count: raiders.length })}
           </div>
         </div>
         <div className="flex gap-2">
@@ -70,13 +72,13 @@ export function RaidersPage() {
             onClick={() => setImporting(true)}
             className="border border-border-strong rounded px-4.5 py-2.5 text-text-muted font-bold text-[13px]"
           >
-            Import roster
+            {t("raidersPage.importRoster")}
           </button>
           <button
             onClick={() => setEditing("new")}
             className="bg-accent border-none rounded px-4.5 py-2.5 text-accent-ink font-bold text-[13px]"
           >
-            Add Raider
+            {t("raidersPage.addRaider")}
           </button>
         </div>
       </div>
@@ -90,7 +92,7 @@ export function RaidersPage() {
       <div className="flex flex-col gap-6">
         <div>
           <h2 className="font-heading text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-2.5">
-            Active ({raiders.filter((r) => r.status === "active").length})
+            {t("raidersPage.active", { count: raiders.filter((r) => r.status === "active").length })}
           </h2>
           <RaiderList
             raiders={raiders.filter((r) => r.status === "active")}
@@ -100,7 +102,7 @@ export function RaidersPage() {
         </div>
         <div>
           <h2 className="font-heading text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-2.5">
-            Bench ({raiders.filter((r) => r.status === "bench").length})
+            {t("raidersPage.bench", { count: raiders.filter((r) => r.status === "bench").length })}
           </h2>
           <RaiderList
             raiders={raiders.filter((r) => r.status === "bench")}
@@ -135,22 +137,24 @@ export function RaidersPage() {
 
       {removing && (
         <Modal onClose={() => setRemoving(null)}>
-          <div className="font-heading font-semibold text-base mb-2.5">Remove raider?</div>
+          <div className="font-heading font-semibold text-base mb-2.5">
+            {t("raidersPage.removeTitle")}
+          </div>
           <div className="text-[13.5px] text-text-muted mb-5">
-            This will remove {removing.name} from the roster.
+            {t("raidersPage.removeBody", { name: removing.name })}
           </div>
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setRemoving(null)}
               className="border border-border-strong rounded px-4 py-2 text-text-muted text-[13px]"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               onClick={handleConfirmRemove}
               className="bg-danger-strong border-none rounded px-4 py-2 text-accent-ink font-bold text-[13px]"
             >
-              Remove
+              {t("common.remove")}
             </button>
           </div>
         </Modal>

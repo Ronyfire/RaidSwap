@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getBoss, getBossNote, type Boss } from "../api/bosses";
 import { getPositions, type Position } from "../api/positions";
 import { getResponsibilities, type Responsibility } from "../api/responsibilities";
@@ -49,6 +50,7 @@ function parseNoteLine(noteLine: string): ReactNode[] {
 type Tab = "assignments" | "notes" | "raidplan";
 
 export function BossDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const bossId = Number(id);
   const { setSelectedBoss } = useRaidContext();
@@ -94,10 +96,12 @@ export function BossDetailPage() {
         setRaiders(raidersData);
         setNote(noteData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError(err instanceof Error ? err.message : t("common.unknownError"));
       }
     }
     load();
+    // 't' deliberately excluded — a language toggle shouldn't refetch this page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bossId, setSelectedBoss, refreshKey]);
 
   async function copyNote() {
@@ -114,7 +118,7 @@ export function BossDetailPage() {
   }
 
   if (error) return <p className="p-8 text-danger text-sm">{error}</p>;
-  if (!boss) return <p className="p-8 text-text-muted text-sm">Loading...</p>;
+  if (!boss) return <p className="p-8 text-text-muted text-sm">{t("common.loading")}</p>;
 
   const tabClass = (active: boolean) =>
     `px-3.5 py-2 rounded-t text-[13px] font-semibold ${
@@ -125,7 +129,7 @@ export function BossDetailPage() {
     <section>
       <div className="px-8 pt-6 flex items-center gap-3.5">
         <Link to="/bosses" className="text-text-muted text-[13px]">
-          ← Bosses
+          {t("bossDetailPage.backToBosses")}
         </Link>
         <div
           className="w-8 h-8 rounded flex-shrink-0 rotate-45"
@@ -136,13 +140,13 @@ export function BossDetailPage() {
 
       <div className="px-8 pt-3.5 flex gap-1">
         <button className={tabClass(tab === "assignments")} onClick={() => setTab("assignments")}>
-          Assignments
+          {t("bossDetailPage.tabAssignments")}
         </button>
         <button className={tabClass(tab === "notes")} onClick={() => setTab("notes")}>
-          Notes
+          {t("bossDetailPage.tabNotes")}
         </button>
         <button className={tabClass(tab === "raidplan")} onClick={() => setTab("raidplan")}>
-          Raid Plan
+          {t("bossDetailPage.tabRaidPlan")}
         </button>
       </div>
 
@@ -167,12 +171,14 @@ export function BossDetailPage() {
         {tab === "notes" && note && (
           <div className="mt-6">
             <div className="flex items-center justify-between mb-1.5">
-              <div className="font-heading font-semibold text-[13.5px]">Export note (MRT/NSRT)</div>
+              <div className="font-heading font-semibold text-[13.5px]">
+                {t("bossDetailPage.exportNote")}
+              </div>
               <button
                 onClick={copyNote}
                 className="text-[12px] font-semibold px-2.5 py-1 rounded border border-border-strong text-text-muted"
               >
-                {copied ? "Copied!" : "Copy"}
+                {copied ? t("bossDetailPage.copied") : t("bossDetailPage.copy")}
               </button>
             </div>
             <pre className="bg-background border border-border-muted rounded px-3 py-2.5 font-mono text-[12px] leading-6 text-text-muted whitespace-pre-wrap">
@@ -183,7 +189,7 @@ export function BossDetailPage() {
 
         {tab === "notes" &&
           (responsibilities.length === 0 ? (
-            <p className="text-text-muted text-sm mt-6">This boss has no responsibilities yet.</p>
+            <p className="text-text-muted text-sm mt-6">{t("bossDetailPage.noResponsibilities")}</p>
           ) : (
             <div className="flex flex-col gap-2.5 mt-6">
               {responsibilities.map((responsibility) => {
@@ -201,12 +207,14 @@ export function BossDetailPage() {
                         {parseNoteLine(responsibility.note_line)}
                       </div>
                     ) : (
-                      <div className="text-[12px] text-text-faint italic mb-2.5">No note</div>
+                      <div className="text-[12px] text-text-faint italic mb-2.5">
+                        {t("bossDetailPage.noNote")}
+                      </div>
                     )}
                     <div className="text-[12.5px] text-text-muted">
                       {assignedRaiders.length > 0
                         ? assignedRaiders.map((r) => r.name).join(", ")
-                        : "Unassigned"}
+                        : t("common.unassigned")}
                     </div>
                   </div>
                 );

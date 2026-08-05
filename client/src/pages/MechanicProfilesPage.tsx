@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getMechanicProfiles,
   createMechanicProfile,
@@ -13,6 +14,7 @@ import { MechanicProfileRaiderList } from "../components/mechanicProfiles/Mechan
 import { MechanicProfileList, type MechanicProfileGroup } from "../components/mechanicProfiles/MechanicProfileList";
 
 export function MechanicProfilesPage() {
+  const { t } = useTranslation();
   const [raiders, setRaiders] = useState<Raider[]>([]);
   const [responsibilities, setResponsibilities] = useState<Responsibility[]>([]);
   const [bosses, setBosses] = useState<Boss[]>([]);
@@ -50,10 +52,12 @@ export function MechanicProfilesPage() {
         setProfiles(profilesData);
         setSelectedRaiderId((current) => current ?? raidersData[0]?.id ?? null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError(err instanceof Error ? err.message : t("common.unknownError"));
       }
     }
     load();
+    // 't' deliberately excluded — a language toggle shouldn't refetch this page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleSetLevel(responsibilityId: number, level: string) {
@@ -93,10 +97,8 @@ export function MechanicProfilesPage() {
 
   return (
     <section className="p-8 px-10 flex flex-col h-full min-h-0">
-      <h1 className="font-heading text-2xl font-semibold mb-1">Mechanic Profiles</h1>
-      <div className="text-[13px] text-text-muted mb-5.5">
-        Track each raider's experience with specific mechanics.
-      </div>
+      <h1 className="font-heading text-2xl font-semibold mb-1">{t("mechanicProfilesPage.title")}</h1>
+      <div className="text-[13px] text-text-muted mb-5.5">{t("mechanicProfilesPage.subtitle")}</div>
 
       {error && (
         <p role="alert" className="text-danger text-sm mb-4">
