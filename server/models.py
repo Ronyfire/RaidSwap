@@ -164,6 +164,30 @@ class MechanicProfile(db.Model):
         }
 
 
+class IconCache(db.Model):
+    """Cached Blizzard Media API resolutions (#93) — one row per external id
+    we've resolved, so blizzard_service never re-hits the API on every
+    render. Not exposed via a REST route, it's an implementation detail of
+    the adapter.
+
+    media_type: "spell" / "creature_display" / "playable_class" for a
+    resolved icon URL, or "creature_display_lookup" for the extra
+    creature_id -> creature_display_id hop the Creature Display Media API
+    requires (the value column holds that id as a string, not a URL)."""
+
+    __tablename__ = "icon_cache"
+    __table_args__ = (db.UniqueConstraint("media_type", "external_id", "region"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    media_type = db.Column(db.String(30), nullable=False)
+    external_id = db.Column(db.Integer, nullable=False)
+    region = db.Column(db.String(10), nullable=False)
+    resolved_value = db.Column(db.String(500), nullable=False)
+    resolved_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class Assignment(db.Model):
     __tablename__ = "assignments"
 
