@@ -29,7 +29,7 @@ def _apply(boss_name, responsibility_name, to_raider_name, from_raider_name=None
         boss_name, responsibility_name, to_raider_name, from_raider_name
     )
     assert "error" not in proposal, proposal
-    return apply_reassignment(proposal)
+    return apply_reassignment(proposal, acknowledged_risk=True)
 
 
 # --- HAPPY PATH ---
@@ -232,8 +232,9 @@ def test_case_16_sixth_apply_within_10_minutes_is_429(client):
 
     proposal = {"responsibility_name": "Interrupt", "to_raider_name": "Rob"}
     for _ in range(5):
-        assert client.post("/api/agent/apply", json={"proposal": proposal}).status_code == 200
+        req = {"proposal": proposal, "acknowledged_risk": True}
+        assert client.post("/api/agent/apply", json=req).status_code == 200
 
-    resp = client.post("/api/agent/apply", json={"proposal": proposal})
+    resp = client.post("/api/agent/apply", json={"proposal": proposal, "acknowledged_risk": True})
     assert resp.status_code == 429
     assert resp.get_json()["retry_after_seconds"] > 0

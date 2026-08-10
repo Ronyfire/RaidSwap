@@ -113,6 +113,7 @@ def test_propose_reassignment_confirmed(client):
         "from_raider_name": "Old",
         "to_raider_name": "New",
         "confidence": "confirmed",
+        "confidence_reason": None,
     }
 
 
@@ -124,7 +125,27 @@ def test_propose_reassignment_unknown_confidence_no_profile(client):
 
     result = propose_reassignment(boss["name"], "Interrupt", "New")
     assert result["confidence"] == "unknown"
+    assert result["confidence_reason"] == "no_profile"
     assert result["from_raider_name"] is None
+
+
+def test_propose_reassignment_unknown_confidence_profile_says_never(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Interrupt")
+    link_to_boss(client, boss["id"], resp["id"])
+    new_raider = make_raider(client, name="New")
+    client.post(
+        "/api/mechanic-profiles",
+        json={
+            "raider_id": new_raider["id"],
+            "responsibility_id": resp["id"],
+            "proficiency_level": "never",
+        },
+    )
+
+    result = propose_reassignment(boss["name"], "Interrupt", "New")
+    assert result["confidence"] == "unknown"
+    assert result["confidence_reason"] == "never_done"
 
 
 def test_propose_reassignment_unassigned_responsibility_still_works(client):
@@ -265,6 +286,49 @@ def test_propose_reassignment_single_assignee_from_raider_still_optional(client)
     assert result["from_raider_name"] == "Old"
 
 
+def test_apply_reassignment_unknown_confidence_without_acknowledgment_raises(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Interrupt")
+    link_to_boss(client, boss["id"], resp["id"])
+    make_raider(client, name="New")
+
+    proposal = propose_reassignment(boss["name"], "Interrupt", "New")
+    with pytest.raises(ValueError, match="No evidence"):
+        apply_reassignment(proposal)
+
+
+def test_apply_reassignment_unknown_confidence_with_acknowledgment_succeeds(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Interrupt")
+    link_to_boss(client, boss["id"], resp["id"])
+    make_raider(client, name="New")
+
+    proposal = propose_reassignment(boss["name"], "Interrupt", "New")
+    result = apply_reassignment(proposal, acknowledged_risk=True)
+
+    assert result["assignment"]["raider_id"] is not None
+
+
+def test_apply_reassignment_confirmed_confidence_does_not_need_acknowledgment(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client, name="Interrupt")
+    link_to_boss(client, boss["id"], resp["id"])
+    new_raider = make_raider(client, name="New")
+    client.post(
+        "/api/mechanic-profiles",
+        json={
+            "raider_id": new_raider["id"],
+            "responsibility_id": resp["id"],
+            "proficiency_level": "mastered",
+        },
+    )
+
+    proposal = propose_reassignment(boss["name"], "Interrupt", "New")
+    result = apply_reassignment(proposal)  # no acknowledged_risk — shouldn't need it
+
+    assert result["assignment"]["raider_id"] is not None
+
+
 def test_apply_reassignment_creates_new_assignment(client):
     boss = make_boss(client)
     resp = make_responsibility(client, name="Interrupt", note_line="tag:;")
@@ -272,7 +336,7 @@ def test_apply_reassignment_creates_new_assignment(client):
     make_raider(client, name="New")
 
     proposal = propose_reassignment(boss["name"], "Interrupt", "New")
-    result = apply_reassignment(proposal)
+    result = apply_reassignment(proposal, acknowledged_risk=True)
 
     assert result["assignment"]["raider_id"] is not None
     assert result["responsibility"]["note_line"] == "tag:;"  # no previous assignee to swap out
@@ -289,7 +353,7 @@ def test_apply_reassignment_updates_existing_and_swaps_note_tag(client):
     )
 
     proposal = propose_reassignment(boss["name"], "Interrupt", "New")
-    result = apply_reassignment(proposal)
+    result = apply_reassignment(proposal, acknowledged_risk=True)
 
     assert result["assignment"]["raider_id"] == new_raider["id"]
     assert result["responsibility"]["note_line"] == "time:0;tag:New;"
@@ -306,7 +370,7 @@ def test_apply_reassignment_flips_incoming_bench_raider_to_active(client):
     )
 
     proposal = propose_reassignment(boss["name"], "Interrupt", "Bench")
-    apply_reassignment(proposal)
+    apply_reassignment(proposal, acknowledged_risk=True)
 
     assert client.get(f"/api/raiders/{bench_raider['id']}").get_json()["status"] == "active"
 
@@ -322,7 +386,7 @@ def test_apply_reassignment_flips_outgoing_raider_to_bench(client):
     )
 
     proposal = propose_reassignment(boss["name"], "Interrupt", "New")
-    apply_reassignment(proposal)
+    apply_reassignment(proposal, acknowledged_risk=True)
 
     assert client.get(f"/api/raiders/{old_raider['id']}").get_json()["status"] == "bench"
 
@@ -343,7 +407,7 @@ def test_apply_reassignment_keeps_active_count_stable_for_a_swap(client):
     )
 
     proposal = propose_reassignment(boss["name"], "Interrupt", "Bench")
-    apply_reassignment(proposal)
+    apply_reassignment(proposal, acknowledged_risk=True)
 
     raiders = client.get("/api/raiders").get_json()
     active_after = len([r for r in raiders if r["status"] == "active"])
@@ -360,7 +424,7 @@ def test_apply_reassignment_keeps_demo_roster_at_20_active(client):
     proposal = propose_reassignment(
         "Nek'zali the Soulcoiler", "Interrupt Soulcoil Ritual", "Quill"
     )
-    apply_reassignment(proposal)
+    apply_reassignment(proposal, acknowledged_risk=True)
 
     assert Raider.query.filter_by(status="active").count() == 20
     assert Raider.query.filter_by(name="Quill").first().status == "active"
@@ -386,7 +450,8 @@ def test_apply_reassignment_multiple_assignees_with_from_raider_replaces_only_th
             "responsibility_name": "Spirit adds",
             "to_raider_name": "New",
             "from_raider_name": "AssigneeB",
-        }
+        },
+        acknowledged_risk=True,
     )
 
     responsibility = Responsibility.query.filter_by(id=resp["id"]).first()

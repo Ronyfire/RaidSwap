@@ -138,6 +138,9 @@
     "discard": "Discard",
     "waitSeconds": "Wait {{seconds}}s",
     "inputPlaceholder": "Ask about a reassignment...",
-    "send": "Send"
+    "send": "Send",
+    "reasonNoProfile": "No data on whether {{name}} has done this before.",
+    "reasonNeverDone": "{{name}} is marked as never having done this before.",
+    "confirmRisk": "I've confirmed this with the player, or I accept the risk."
   }
 }

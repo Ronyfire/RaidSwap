@@ -138,6 +138,9 @@
     "discard": "Descartar",
     "waitSeconds": "Espera {{seconds}}s",
     "inputPlaceholder": "Pregunta sobre una reasignación...",
-    "send": "Enviar"
+    "send": "Enviar",
+    "reasonNoProfile": "No hay datos de si {{name}} hizo esto antes.",
+    "reasonNeverDone": "{{name}} está marcado como que nunca hizo esto antes.",
+    "confirmRisk": "Confirmé esto con el jugador, o acepto el riesgo."
   }
 }

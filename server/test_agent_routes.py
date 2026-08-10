@@ -65,7 +65,10 @@ def test_apply_commits_a_valid_proposal(client):
 
     apply_resp = client.post(
         "/api/agent/apply",
-        json={"proposal": {"responsibility_name": "Interrupt", "to_raider_name": "Rob"}},
+        json={
+            "proposal": {"responsibility_name": "Interrupt", "to_raider_name": "Rob"},
+            "acknowledged_risk": True,
+        },
     )
 
     assert apply_resp.status_code == 200
@@ -76,9 +79,30 @@ def test_apply_rejects_unknown_raider(client):
     make_responsibility(client)
     resp = client.post(
         "/api/agent/apply",
-        json={"proposal": {"responsibility_name": "Interrupt", "to_raider_name": "Nobody"}},
+        json={
+            "proposal": {"responsibility_name": "Interrupt", "to_raider_name": "Nobody"},
+            "acknowledged_risk": True,
+        },
     )
     assert resp.status_code == 400
+
+
+def test_apply_rejects_unknown_confidence_without_acknowledged_risk(client):
+    boss = make_boss(client)
+    resp = make_responsibility(client)
+    client.post(
+        "/api/positions",
+        json={"x": 1, "y": 1, "boss_id": boss["id"], "responsibility_id": resp["id"]},
+    )
+    make_raider(client)
+
+    apply_resp = client.post(
+        "/api/agent/apply",
+        json={"proposal": {"responsibility_name": "Interrupt", "to_raider_name": "Rob"}},
+    )
+
+    assert apply_resp.status_code == 400
+    assert "acknowledged_risk" in apply_resp.get_json()["error"]
 
 
 def test_apply_is_rate_limited_past_the_free_tier_cooldown(client):
@@ -92,8 +116,11 @@ def test_apply_is_rate_limited_past_the_free_tier_cooldown(client):
 
     proposal = {"responsibility_name": "Interrupt", "to_raider_name": "Rob"}
     for _ in range(5):
-        assert client.post("/api/agent/apply", json={"proposal": proposal}).status_code == 200
+        req = {"proposal": proposal, "acknowledged_risk": True}
+        assert client.post("/api/agent/apply", json=req).status_code == 200
 
-    limited_resp = client.post("/api/agent/apply", json={"proposal": proposal})
+    limited_resp = client.post(
+        "/api/agent/apply", json={"proposal": proposal, "acknowledged_risk": True}
+    )
     assert limited_resp.status_code == 429
     assert limited_resp.get_json()["retry_after_seconds"] > 0

@@ -88,6 +88,19 @@ def _range_compatible(raider: Raider, position: Position | None) -> bool:
     )
 
 
+def _confidence_for(profile: MechanicProfile | None) -> tuple[str, str | None]:
+    """Cascade step 2+3 (step 1, WCL, isn't built yet — see #88): "confirmed"
+    only when a MechanicProfile says the raider has actually done this
+    before. Otherwise "unknown", with a reason distinguishing "we never
+    curated this pairing at all" from "we did, and they haven't done it" —
+    the raid leader should weigh those differently."""
+    if profile is None:
+        return "unknown", "no_profile"
+    if profile.proficiency_level in ("has_done_it", "mastered"):
+        return "confirmed", None
+    return "unknown", "never_done"
+
+
 def get_roster() -> dict:
     """List every raider — name, class, spec, role."""
     return {"raiders": [r.to_dict() for r in Raider.query.all()]}
@@ -194,10 +207,7 @@ def propose_reassignment(
     profile = MechanicProfile.query.filter_by(
         raider_id=new_raider.id, responsibility_id=responsibility.id
     ).first()
-    confidence = "confirmed" if profile and profile.proficiency_level in (
-        "has_done_it",
-        "mastered",
-    ) else "unknown"
+    confidence, confidence_reason = _confidence_for(profile)
 
     return {
         "boss_name": boss.name,
@@ -205,10 +215,11 @@ def propose_reassignment(
         "from_raider_name": resolved_from_name,
         "to_raider_name": new_raider.name,
         "confidence": confidence,
+        "confidence_reason": confidence_reason,
     }
 
 
-def apply_reassignment(proposal: dict) -> dict:
+def apply_reassignment(proposal: dict, acknowledged_risk: bool = False) -> dict:
     """Commit a proposal produced by propose_reassignment().
 
     Re-resolves everything by name instead of trusting IDs from the client,
@@ -220,6 +231,13 @@ def apply_reassignment(proposal: dict) -> dict:
     propose_reassignment — a proposal built by hand (or from a stale
     conversation) doesn't get to skip it: with more than one current
     assignee and no from_raider_name, this raises rather than guessing.
+
+    Same treatment for cascade step 3 ("ask the raid leader"): confidence
+    is recomputed here from the DB, not trusted from proposal["confidence"]
+    (which could be stale, or hand-built). When it comes back "unknown",
+    acknowledged_risk must be explicitly True — the caller (the API route)
+    is what turns "raid leader ticked the checkbox" into that flag; this
+    function just refuses to proceed without it.
     """
     responsibility = _find_responsibility(proposal.get("responsibility_name", ""))
     if responsibility is None:
@@ -240,6 +258,16 @@ def apply_reassignment(proposal: dict) -> dict:
         raise ValueError(
             f"{new_raider.name} is {_raider_range(new_raider)}, but "
             f"'{responsibility.name}' requires {linked.requires_range}"
+        )
+
+    profile = MechanicProfile.query.filter_by(
+        raider_id=new_raider.id, responsibility_id=responsibility.id
+    ).first()
+    confidence, confidence_reason = _confidence_for(profile)
+    if confidence == "unknown" and not acknowledged_risk:
+        raise ValueError(
+            f"No evidence {new_raider.name} has done '{responsibility.name}' before "
+            f"({confidence_reason}) — set acknowledged_risk to apply anyway"
         )
 
     current_assignments = Assignment.query.filter_by(responsibility_id=responsibility.id).all()

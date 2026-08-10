@@ -37,7 +37,7 @@ def apply():
         ), 429
 
     try:
-        result = apply_reassignment(proposal)
+        result = apply_reassignment(proposal, acknowledged_risk=bool(data.get("acknowledged_risk")))
     except ValueError as e:
         return jsonify(error=str(e)), 400
     return jsonify(result)
