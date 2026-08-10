@@ -16,6 +16,7 @@ export function AgentChat({ onApplied, bossId }: AgentChatProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [acknowledgedRisk, setAcknowledgedRisk] = useState(false);
 
   useEffect(() => {
     if (cooldownSeconds <= 0) return;
@@ -31,6 +32,7 @@ export function AgentChat({ onApplied, bossId }: AgentChatProps) {
     setMessages(nextMessages);
     setInput("");
     setProposal(null);
+    setAcknowledgedRisk(false);
     setError(null);
     setLoading(true);
     try {
@@ -47,8 +49,9 @@ export function AgentChat({ onApplied, bossId }: AgentChatProps) {
   async function handleApply() {
     if (!proposal) return;
     try {
-      await applyProposal(proposal);
+      await applyProposal(proposal, acknowledgedRisk);
       setProposal(null);
+      setAcknowledgedRisk(false);
       onApplied();
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
@@ -97,10 +100,32 @@ export function AgentChat({ onApplied, bossId }: AgentChatProps) {
               </span>
             )}
           </div>
+
+          {proposal.confidence === "unknown" && (
+            <div className="bg-warning/10 border border-warning/30 rounded px-2.5 py-2 flex flex-col gap-1.5">
+              <p className="text-[11.5px] text-warning">
+                {t(
+                  proposal.confidence_reason === "never_done"
+                    ? "agentChat.reasonNeverDone"
+                    : "agentChat.reasonNoProfile",
+                  { name: proposal.to_raider_name },
+                )}
+              </p>
+              <label className="flex items-center gap-1.5 text-[11.5px] text-text cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acknowledgedRisk}
+                  onChange={(e) => setAcknowledgedRisk(e.target.checked)}
+                />
+                {t("agentChat.confirmRisk")}
+              </label>
+            </div>
+          )}
+
           <div className="flex gap-2">
             <button
               onClick={handleApply}
-              disabled={cooldownSeconds > 0}
+              disabled={cooldownSeconds > 0 || (proposal.confidence === "unknown" && !acknowledgedRisk)}
               className="flex-1 bg-accent border-none rounded px-3 py-2 text-accent-ink font-bold text-[12.5px] disabled:opacity-50"
             >
               {cooldownSeconds > 0
@@ -108,7 +133,10 @@ export function AgentChat({ onApplied, bossId }: AgentChatProps) {
                 : t("agentChat.apply")}
             </button>
             <button
-              onClick={() => setProposal(null)}
+              onClick={() => {
+                setProposal(null);
+                setAcknowledgedRisk(false);
+              }}
               className="flex-1 border border-border-strong rounded px-3 py-2 text-text-muted text-[12.5px]"
             >
               {t("agentChat.discard")}

@@ -11,6 +11,7 @@ export interface AgentProposal {
   from_raider_name: string | null;
   to_raider_name: string;
   confidence: "confirmed" | "unknown";
+  confidence_reason: "no_profile" | "never_done" | null;
 }
 
 export interface AgentChatResponse {
@@ -28,9 +29,9 @@ export function sendAgentMessage(
   });
 }
 
-export function applyProposal(proposal: AgentProposal): Promise<unknown> {
+export function applyProposal(proposal: AgentProposal, acknowledgedRisk = false): Promise<unknown> {
   return apiFetch("/api/agent/apply", {
     method: "POST",
-    body: JSON.stringify({ proposal }),
+    body: JSON.stringify({ proposal, acknowledged_risk: acknowledgedRisk }),
   });
 }

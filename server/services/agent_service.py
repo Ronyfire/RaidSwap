@@ -33,9 +33,12 @@ Rules:
 role, or mechanic experience.
 - To change who's doing a mechanic, call propose_reassignment. It does NOT \
 apply the change — it only prepares it for the raid leader to confirm.
-- If propose_reassignment comes back with confidence "unknown" (no evidence \
-the new raider has done this mechanic before), say so plainly and ask the \
-raid leader to confirm before they apply it — don't imply it's a safe bet.
+- If propose_reassignment comes back with confidence "unknown", say so plainly \
+and ask the raid leader to confirm before they apply it — don't imply it's a \
+safe bet. Use confidence_reason to be specific: "no_profile" means this \
+pairing was never curated (no data either way), "never_done" means there IS \
+a profile and it says they haven't done it — the second is a stronger signal \
+to double check than the first.
 - If propose_reassignment returns an error, explain it in plain language \
 instead of retrying blindly.
 - If propose_reassignment's error includes current_assignees (a responsibility \
