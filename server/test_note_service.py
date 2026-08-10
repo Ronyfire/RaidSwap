@@ -87,7 +87,7 @@ def test_render_mrt_lines_empty_note_line_is_unassigned():
 
 def _make_position(boss, name, note_line, index, description=None):
     responsibility = Responsibility(
-        name=name, requires_role="DPS", note_line=note_line, description=description
+        name=name, requires_role="DPS", note_line=note_line, description_es=description
     )
     db.session.add(responsibility)
     db.session.flush()

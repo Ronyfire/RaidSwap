@@ -58,6 +58,8 @@ def assemble_boss_note(boss_id: int) -> str:
 
     lines = []
     for r in responsibilities:
-        action = r.description or r.name
+        # Nota pensada para pegar en el addon con /mrtni — sin locale de request,
+        # se prioriza español por ser el idioma de curación real de este raid.
+        action = r.description_es or r.description_en or r.name
         lines.extend(render_mrt_lines(r.note_line or "", action))
     return "\n".join(lines)

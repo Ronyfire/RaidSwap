@@ -7,7 +7,8 @@ export interface Responsibility {
   difficulty_variant: string | null;
   requires_role: string | null;
   requires_prior_experience: boolean;
-  description: string | null;
+  description_en: string | null;
+  description_es: string | null;
   confidence: string;
   note_line: string | null;
   last_updated: string | null;
