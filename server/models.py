@@ -74,7 +74,10 @@ class Responsibility(db.Model):
     difficulty_variant = db.Column(db.String(20))
     requires_role = db.Column(db.String(20))
     requires_prior_experience = db.Column(db.Boolean, nullable=False, default=False)
-    description = db.Column(db.Text)
+    # Bilingüe (#41 solo traduce el chrome de la UI, no contenido curado) — name/actor_label
+    # quedan en un solo idioma (jerga corta), description sí porque es donde vive la prosa.
+    description_en = db.Column(db.Text)
+    description_es = db.Column(db.Text)
     confidence = db.Column(db.String(20), nullable=False, default="unconfirmed")
     note_line = db.Column(db.String(500), nullable=True)
     # Content axis from Viserio's note taxonomy (see projects/notes-model.md):
@@ -99,7 +102,8 @@ class Responsibility(db.Model):
             "difficulty_variant": self.difficulty_variant,
             "requires_role": self.requires_role,
             "requires_prior_experience": self.requires_prior_experience,
-            "description": self.description,
+            "description_en": self.description_en,
+            "description_es": self.description_es,
             "confidence": self.confidence,
             "note_line": self.note_line,
             "type": self.type,

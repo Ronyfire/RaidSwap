@@ -85,6 +85,13 @@ def create_app(config_overrides=None):
         seed_curation()
         print("Seeded PTR curation data (roster, responsibilities, positions, assignments).")
 
+    @app.cli.command("seed-mechanics-reference")
+    def seed_mechanics_reference_command():
+        from seeds.mechanics_reference import seed_mechanics_reference
+
+        seed_mechanics_reference()
+        print("Seeded detailed mechanic reference data (7 bosses, Ula'tek pending PTR).")
+
     return app
 
 
