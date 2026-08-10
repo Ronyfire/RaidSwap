@@ -1,10 +1,11 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { updatePosition, type Position } from "../../api/positions";
 import type { Responsibility } from "../../api/responsibilities";
 import type { Assignment } from "../../api/assignments";
 import type { Raider } from "../../api/raiders";
-import { roleColor } from "../../lib/wowClasses";
+import { getClassIcon, getClassIconBlobUrl } from "../../api/blizzard";
+import { classId as blizzardClassId, roleColor } from "../../lib/wowClasses";
 import { RAIDPLAN_IMAGES } from "../../lib/raidplanImages";
 import { drawRaidPlanImage, downloadCanvasAsPng } from "../../lib/raidplanExport";
 
@@ -43,6 +44,37 @@ export function RaidPlanOverlay({
   // dragged token's position is mutated directly on its DOM node instead;
   // only the FINAL position on pointerup goes through React/the API.
   const dragPosRef = useRef<{ x: number; y: number } | null>(null);
+  // classId -> resolved icon URL, or null if resolution failed (e.g. no
+  // Blizzard credentials configured) — null is cached too so a failed
+  // lookup doesn't get retried on every render.
+  const [classIcons, setClassIcons] = useState<Record<number, string | null>>({});
+
+  useEffect(() => {
+    const neededIds = new Set<number>();
+    for (const position of positions) {
+      if (position.responsibility_id === null) continue;
+      const raiderIds = assignments
+        .filter((a) => a.responsibility_id === position.responsibility_id)
+        .map((a) => a.raider_id);
+      if (raiderIds.length !== 1) continue; // ambiguous class with >1 raider, skip
+      const raider = raiders.find((r) => r.id === raiderIds[0]);
+      const cId = raider ? blizzardClassId(raider.wow_class) : null;
+      if (cId !== null && !(cId in classIcons)) neededIds.add(cId);
+    }
+    if (neededIds.size === 0) return;
+
+    let cancelled = false;
+    Promise.all([...neededIds].map(async (cId) => [cId, await getClassIcon(cId)] as const)).then(
+      (resolved) => {
+        if (cancelled) return;
+        setClassIcons((prev) => ({ ...prev, ...Object.fromEntries(resolved) }));
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [positions, assignments, raiders]);
 
   if (!images) {
     return <p className="text-text-muted text-sm mt-6">{t("raidPlanOverlay.noImage")}</p>;
@@ -59,6 +91,22 @@ export function RaidPlanOverlay({
       .map((a) => a.raider_id);
     const names = raiders.filter((r) => raiderIds.includes(r.id)).map((r) => r.name);
     return names.length > 0 ? names.join(", ") : t("common.unassigned");
+  }
+
+  // Only resolves a class when exactly one raider is assigned — with 0 or
+  // 2+ raiders there's no single class to represent.
+  function singleAssignedClassIdFor(responsibilityId: number): number | null {
+    const raiderIds = assignments
+      .filter((a) => a.responsibility_id === responsibilityId)
+      .map((a) => a.raider_id);
+    if (raiderIds.length !== 1) return null;
+    const raider = raiders.find((r) => r.id === raiderIds[0]);
+    return raider ? blizzardClassId(raider.wow_class) : null;
+  }
+
+  function classIconFor(responsibilityId: number): string | null {
+    const cId = singleAssignedClassIdFor(responsibilityId);
+    return cId !== null ? (classIcons[cId] ?? null) : null;
   }
 
   // Phase filtering only matters when there's more than one image to switch
@@ -99,11 +147,11 @@ export function RaidPlanOverlay({
     onPositionMoved();
   }
 
-  function handleExport() {
+  async function handleExport() {
     const image = imgRef.current;
     if (!image) return;
 
-    const tokens = visiblePositions
+    const baseTokens = visiblePositions
       .map((position) => {
         const responsibility = responsibilityById.get(position.responsibility_id!);
         if (!responsibility) return null;
@@ -112,12 +160,27 @@ export function RaidPlanOverlay({
           y: position.y,
           label: raiderNamesFor(responsibility.id),
           color: roleColor(position.requires_role ?? responsibility.requires_role ?? ""),
+          classId: singleAssignedClassIdFor(responsibility.id),
         };
       })
       .filter((token): token is NonNullable<typeof token> => token !== null);
 
+    // Blizzard's icon CDN sends no CORS header, so the export needs the
+    // bytes proxied through our own origin (see api/blizzard.ts) — a
+    // plain <img src> in the live overlay doesn't need this, only reading
+    // pixels back out of a <canvas> does.
+    const blobUrls: string[] = [];
+    const tokens = await Promise.all(
+      baseTokens.map(async ({ classId, ...token }) => {
+        const iconUrl = classId !== null ? await getClassIconBlobUrl(classId) : null;
+        if (iconUrl) blobUrls.push(iconUrl);
+        return { ...token, iconUrl };
+      }),
+    );
+
     const canvas = document.createElement("canvas");
-    drawRaidPlanImage(canvas, image, tokens, IMAGE_WIDTH, IMAGE_HEIGHT);
+    await drawRaidPlanImage(canvas, image, tokens, IMAGE_WIDTH, IMAGE_HEIGHT);
+    blobUrls.forEach((url) => URL.revokeObjectURL(url));
 
     const slug = bossName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const suffix = images.length > 1 ? `-phase${phase}` : "";
@@ -194,6 +257,7 @@ export function RaidPlanOverlay({
           if (!responsibility) return null;
           const label = raiderNamesFor(responsibility.id);
           const color = roleColor(position.requires_role ?? responsibility.requires_role ?? "");
+          const iconUrl = classIconFor(responsibility.id);
           const isDragging = draggingId === position.id;
 
           return (
@@ -213,6 +277,14 @@ export function RaidPlanOverlay({
                 touchAction: editMode ? "none" : undefined,
               }}
             >
+              {iconUrl && (
+                <img
+                  src={iconUrl}
+                  alt=""
+                  className="w-4 h-4 rounded-full border border-white/60 flex-shrink-0"
+                  draggable={false}
+                />
+              )}
               {label}
             </div>
           );
