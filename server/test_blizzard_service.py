@@ -146,3 +146,67 @@ def test_token_is_fetched_once_and_reused_across_calls(mock_post, mock_get, app)
     get_spell_icon(190)  # different id -> not a cache hit, must reuse the token
 
     assert mock_post.call_count == 1
+
+
+@patch.dict("os.environ", _ENV)
+@patch("services.blizzard_service.httpx.get")
+@patch("services.blizzard_service.httpx.post")
+def test_class_icon_route_success(mock_post, mock_get, client):
+    mock_post.return_value = _TOKEN_RESPONSE
+    mock_get.return_value = _media_response("icon", "https://render.worldofwarcraft.com/warrior.jpg")
+
+    resp = client.get("/api/blizzard/class-icon/1")
+
+    assert resp.status_code == 200
+    assert resp.get_json() == {"icon_url": "https://render.worldofwarcraft.com/warrior.jpg"}
+
+
+@patch.dict("os.environ", {}, clear=True)
+def test_class_icon_route_returns_503_without_credentials(client):
+    resp = client.get("/api/blizzard/class-icon/1")
+
+    assert resp.status_code == 503
+    assert "not set" in resp.get_json()["error"]
+
+
+@patch.dict("os.environ", _ENV)
+@patch("routes.blizzard.httpx.get")
+@patch("routes.blizzard.get_playable_class_icon")
+def test_class_icon_image_route_proxies_bytes(mock_get_icon, mock_route_get, client):
+    # Mocked at the routes.blizzard boundary, not services.blizzard_service's
+    # httpx calls — both modules share the same underlying httpx.get
+    # attribute, so patching "services.blizzard_service.httpx.get" and
+    # "routes.blizzard.httpx.get" in the same test collide (last patch
+    # applied wins for both call sites). The route's own OAuth/media
+    # resolution is already covered by the service-level tests above; this
+    # test is only about the route's own proxy behavior.
+    mock_get_icon.return_value = "https://render.worldofwarcraft.com/warrior.jpg"
+    mock_route_get.return_value = Mock(
+        status_code=200, content=b"fake-jpeg-bytes", headers={"content-type": "image/jpeg"}
+    )
+
+    resp = client.get("/api/blizzard/class-icon/1/image")
+
+    assert resp.status_code == 200
+    assert resp.data == b"fake-jpeg-bytes"
+    assert resp.content_type == "image/jpeg"
+    mock_route_get.assert_called_once_with("https://render.worldofwarcraft.com/warrior.jpg", timeout=10)
+
+
+@patch.dict("os.environ", {}, clear=True)
+def test_class_icon_image_route_returns_503_without_credentials(client):
+    resp = client.get("/api/blizzard/class-icon/1/image")
+
+    assert resp.status_code == 503
+
+
+@patch.dict("os.environ", _ENV)
+@patch("routes.blizzard.httpx.get")
+@patch("routes.blizzard.get_playable_class_icon")
+def test_class_icon_image_route_returns_502_on_fetch_failure(mock_get_icon, mock_route_get, client):
+    mock_get_icon.return_value = "https://render.worldofwarcraft.com/warrior.jpg"
+    mock_route_get.return_value = Mock(status_code=404)
+
+    resp = client.get("/api/blizzard/class-icon/1/image")
+
+    assert resp.status_code == 502
